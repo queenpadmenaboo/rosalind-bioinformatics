@@ -1,4 +1,4 @@
-"""to choose between two actions, then you can use an if/else statement"""
+"""To choose between two actions, then you can use an if/else statement"""
 a = 42
 if a < 10:
     print('the number is less than 10')
