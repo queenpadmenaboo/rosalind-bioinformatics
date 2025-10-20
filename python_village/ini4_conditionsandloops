@@ -25,18 +25,18 @@ a = 1
 b = 3
 if a + b == 4:
     print('printed when a + b equals four')
-    
+
+"""A while loop repeats a block of code as long as a certain condition is true. To repeat an action multiple times, you can use a while loop. 
+Note the indentation after the while line. The loop will continue as long as the condition greetings <= 3 is true.
+Inside the loop, print 'Hello!' multiplied by the current value of greetings, which results in 'Hello!' being printed an increasing number of times.
+Then, increment greetings by 1 using greetings = greetings + 1.  This ensures that the loop will eventually terminate when greetings exceeds 3. 
+Be careful to avoid infinite loops, which occur when the condition never becomes false."""
+
 greetings = 1
 while greetings <= 3:
     print('Hello!' * greetings)
     greetings = greetings + 1
-"""A while loop repeats a block of code as long as a certain condition is true. 
-To repeat an action multiple times, you can use a while loop. 
-Note the indentation after the while line.
-The loop will continue as long as the condition greetings <= 3 is true.
-Inside the loop, print 'Hello!' multiplied by the current value of greetings, which results in 'Hello!' being printed an increasing number of times.
-Then, increment greetings by 1 using greetings = greetings + 1.  This ensures that the loop will eventually terminate when greetings exceeds 3. 
-Be careful to avoid infinite loops, which occur when the condition never becomes false."""
+
 
 """Example of an infinite loop (do not run this code):"""
 """greetings = 1
@@ -45,20 +45,22 @@ Be careful to avoid infinite loops, which occur when the condition never becomes
     greetings = greetings + 0 # Bug here"""
 """In this example, greetings is never incremented, so the condition greetings <= 3 remains true indefinitely, causing an infinite loop where Hello! is printed endlessly."""
 
+"""A for loop is used to carry out some action on every element of a list."""
 names = ['Alice', 'Bob', 'Charley']
 for name in names:
     print('Hello, ' + name)
-"""A for loop is used to carry out some action on every element of a list."""
 
+
+"""To repeat an action exactly n times, you can use a for loop with range(n). range is a function that creates a list of integers between 0 and n, where n is not included.
+In this example, the loop will iterate over the integers from 0 to 9, printing 'i' ten times.""" 
 n = 10
 for i in range(n):
     print('i')
-"""To repeat an action exactly n times, you can use a for loop with range(n). range is a function that creates a list of integers between 0 and n, where n is not included.
-In this example, the loop will iterate over the integers from 0 to 9, printing 'i' ten times."""  
-
+ 
+"""You can also specify a starting point for range. In this example, the loop will iterate over the integers from 5 to 11, printing 'i' seven times."""
 for i in range(5, 12):
     print('i')
-"""You can also specify a starting point for range. In this example, the loop will iterate over the integers from 5 to 11, printing 'i' seven times."""
+
 
 """Sample Dataset"""
 a = 100 
@@ -87,7 +89,7 @@ else:
 """Simple solution without explicit check for odd numbers"""
 a = 4004
 b = 8427
-print (sum(range(a|1, b+1, 2)))  # a|1 gives the next odd number if a is even
+print(sum(range(a|1, b+1, 2)))  # a|1 gives the next odd number if a is even
 
 """Pseudo-code solution"""
 sum=0
