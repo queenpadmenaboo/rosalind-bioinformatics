@@ -22,7 +22,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-""""Output in Terminal:
+"""Output in Terminal:
 The Zen of Python, by Tim Peters
 
 Beautiful is better than ugly.
