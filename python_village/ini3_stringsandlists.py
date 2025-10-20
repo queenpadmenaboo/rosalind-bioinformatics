@@ -1,3 +1,11 @@
+"""
+Rosalind Problem: INI3 - Strings and Lists
+Problem URL: http://rosalind.info/problems/ini3/
+
+Author: Bunsree Patel
+Date: October 16, 2025
+"""
+
 user_string = "HumptyDumptysatonawallHumptyDumptyhadagreatfallAlltheKingshorsesandalltheKingsmenCouldntputHumptyDumptyinhisplaceagain"
 
 a = 22

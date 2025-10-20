@@ -1,3 +1,11 @@
+"""
+Rosalind Problem: INI2 - Variables and Some Arithmetic
+Problem URL: http://rosalind.info/problems/ini2/
+
+Author: Bunsree Patel
+Date: October 15, 2025
+"""
+
 a = 324
 b = 24
 c = a - b

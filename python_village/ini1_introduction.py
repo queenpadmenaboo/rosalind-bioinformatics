@@ -3,8 +3,9 @@ Rosalind Problem: INI1 - Installing Python
 Problem URL: http://rosalind.info/problems/ini1/
 
 Author: Bunsree Patel
-Date: October 16, 2025
+Date: October 15, 2025
 """
+
 """Python is a popular programming language known for its simplicity and readability.
 It is widely used in various fields, including web development, data analysis, artificial intelligence, scientific computing, and more.
 Launch IDLE (Integrated Development and Learning Environment) to start writing and executing Python code.
