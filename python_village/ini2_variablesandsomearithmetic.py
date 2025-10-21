@@ -40,8 +40,8 @@ For example, 2 raised to the power of 3 is calculated as follows:"""
 """A string is an ordered sequence of letters, numbers, and other characters."""
 a = "Hello"
 b = "World"
-"""Notice that the strings are enclosed in double quotes. 
-You can also use single quotes, but be consistent."""
+"""Notice that the strings are enclosed in double quotes (" "). 
+You can also use single quotes (' '), but be consistent."""
 
 a = 'Rosalind'
 b = 'Franklin'
