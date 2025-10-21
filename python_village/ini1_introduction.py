@@ -13,8 +13,10 @@ Launch IDLE (Integrated Development and Learning Environment) to start writing a
 Any command entered at the prompt will be executed immediately, and the result (if any) will be displayed."""
 
 print(1 + 1)
-print('Hello, World!') 
+print('Hello, World!')
 
+"""Problem: After downloading and installing Python, type 'import this' into the Python command line and see what happens. Then, click the "Download dataset" button below and copy the Zen of Python into the space provided."""
+ 
 def main():
     """Display the Zen of Python"""
     import this
