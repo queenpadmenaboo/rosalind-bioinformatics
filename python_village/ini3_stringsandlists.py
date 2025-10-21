@@ -44,7 +44,7 @@ tea_party[3:]
 print(tea_party[3:])
 """Output: ['Alice', 'Jabberwocky']. Only the items at index 3 and beyond were returned.
 
-Negative indices can be used to index a list from the end (backtracking."""
+Negative indices can be used to index a list from the end (backtracking)."""
 tea_party[-2:]
 print(tea_party[-2:])
 """Output: ['Alice', 'Jabberwocky']. The last two items of the list were returned. 
