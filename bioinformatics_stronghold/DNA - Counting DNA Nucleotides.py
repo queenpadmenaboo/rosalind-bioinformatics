@@ -16,7 +16,19 @@ Nucleotides of a specific type of nucleic acid (DNA or RNA) differ only in the n
 
 The ordering of bases defines a nucleic acid's primary structure.
 
-DNA is fcound in all living organisms on Earth, including bacteria, and many viruses (which are often considered to be nonliving).
+DNA is found in all living organisms on Earth, including bacteria, and many viruses (which are often considered to be nonliving).
 Genome refers to the sum total of the DNA in an organism's chromosomes."""
 
 
+"""Sample Problem:
+A string is an ordered collection of symbols selected from some alphabet and formed into a word; the length of a string is the number of symbols that it contains.
+An example of a length 21 DNA string (whose alphabet contains the symbols 'A', 'C', 'G', and 'T') is "ATGCTTCAGAAAGGTCTTACG."
+
+Given: A DNA string s of length at most 1000 nt.
+Return: Four integers (separated by spaces) counting the respective number of times that the symbols 'A', 'C', 'G', and 'T' occur in s."""
+
+"""Sample Dataset:
+
+
+
+"""
