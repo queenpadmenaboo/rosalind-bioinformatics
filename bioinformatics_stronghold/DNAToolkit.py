@@ -16,3 +16,13 @@ def countNucFrequency(seq):
     for nuc in seq:
         tmpFreqDict[nuc] += 1
     return tmpFreqDict
+
+def transcribeDNAtoRNA(dna_seq):
+    # Validate input
+    for nuc in dna_seq.upper():
+        if nuc not in Nucleotides:
+            raise ValueError("Invalid DNA sequence")
+    
+    # Replace T with U to make RNA
+    rna_seq = dna_seq.upper().replace("T", "U")
+    return rna_seq
