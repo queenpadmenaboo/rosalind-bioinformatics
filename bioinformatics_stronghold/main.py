@@ -28,10 +28,10 @@ print(validateSeq(rndDNAStr))
 from DNAToolkit import *
 import random
 
-# Creating a random DNA string of length 20
+# Creating a random DNA string of length 50
 randDNAStr = ''.join([random.choice(Nucleotides)
                      for nuc in range(50)])
 print(validateSeq(randDNAStr))
-
-print(validateSeq(randDNAStr))
+# Sample Output: CCTAATGTTACTGGGTGCACCTAAGCGTAACCATAGGCGGGAGAGGCAAA
 print(countNucFrequency(randDNAStr))
+# Sample Output: {'A': 15, 'C': 11, 'G': 15, 'T': 9}
