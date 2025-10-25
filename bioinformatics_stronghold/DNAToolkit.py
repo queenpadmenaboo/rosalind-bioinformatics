@@ -1,4 +1,8 @@
 # DNA Toolkit file
+"""
+Author: Bunsree Patel
+Date: October 24, 2025
+"""
 
 Nucleotides = ['A', 'C', 'G', 'T']
 

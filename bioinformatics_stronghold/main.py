@@ -1,4 +1,9 @@
 # DNA Toolset/Code testing file
+"""
+Author: Bunsree Patel
+Date: October 24, 2025
+"""
+
 """Testing validateSeq function from DNAToolkit.py"""
 from DNAToolkit import validateSeq
 rndDNAStr = "ATTTCGT"
