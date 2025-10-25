@@ -5,8 +5,24 @@ Problem URL: http://rosalind.info/problems/rna/
 Author: Bunsree Patel
 Date: October 25, 2025
 """
+"""A second nucleic acid exists alongside DNA in the chromatin; this molecule has a different sugar (ribose), and is known as ribose nucleic acid or RNA.
+RNA differs from DNA further in that it contains a base called uracil in place of thymine.
 
-"""Sample Dataset Problem"""
+Initially, biologists thought that RNA was only contained in plant cells, whereas DNA was restricted to animal cells.
+However, this hypothesis dissipated as improved chemical methods discovered both DNA and RNA in the cells of all life forms on Earth.
+
+The primary structure of DNA and RNA is so similar because DNA serves as a blueprint for the creation of a special kind of RNA molecule called messenger RNA (mRNA).
+mRNA is created during RNA transcription, during which a strand of DNA is used as a template for construction a strand of RNA by copying nucleotides one at a time, where uracil is used in place of thymine.
+
+In eukaryotes, DNA remains in the nucleus, while RNA can enter the far reachs of the cell to carry out DNA's instructions."""
+
+
+"""Sample Dataset Problem
+An RNA string is a string formed from the alphabet containing 'A', 'C', 'G', and 'U'.
+
+Given a DNA string t corresponding to a coding strand, its transcribed RNA string u is formed by replacing all occurrences of 'T' in t with 'U' in u.
+    Given: A DNA string t having length at most 1000 nt.
+    Return: The transcribed RNA string of t."""
 
 from DNAToolkit import validateSeq, transcribeDNAtoRNA
 dna_seq = "GATGGAACTTGACTACGTAAATT"
