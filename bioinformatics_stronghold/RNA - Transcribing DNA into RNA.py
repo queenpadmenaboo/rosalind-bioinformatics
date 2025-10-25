@@ -5,6 +5,7 @@ Problem URL: http://rosalind.info/problems/rna/
 Author: Bunsree Patel
 Date: October 25, 2025
 """
+
 """A second nucleic acid exists alongside DNA in the chromatin; this molecule has a different sugar (ribose), and is known as ribose nucleic acid or RNA.
 RNA differs from DNA further in that it contains a base called uracil in place of thymine.
 
