@@ -30,3 +30,27 @@ def transcribeDNAtoRNA(dna_seq):
     # Replace T with U to make RNA
     rna_seq = dna_seq.upper().replace("T", "U")
     return rna_seq
+
+def complementDNA(dna_seq):
+    # Validate input
+    for nuc in dna_seq.upper():
+        if nuc not in Nucleotides:
+            raise ValueError("Invalid DNA sequence")
+    
+    # Complement mapping
+    complement = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+
+    # Build complement strand
+    comp_seq = ''.join([complement[nuc] for nuc in dna_seq.upper()])
+    return comp_seq
+
+def reversecomplementDNA(dna_seq):
+    # Validate input
+    dna_seq = validateSeq(dna_seq)
+
+    # Complement mapping
+    complement = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+
+    # Build reverse complement strand
+    rev_complementDNA = ''.join([complement[nuc] for nuc in dna_seq[::-1]])
+    return rev_complementDNA
