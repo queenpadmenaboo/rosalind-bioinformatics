@@ -47,3 +47,4 @@ dna_seq = "CACATCAGTGCAACCATACAATTTTGGCATACTGCACCACTTCGAACCTATTCGTTACGTTTTTCCTAG
 
 # Get reverse complement
 print(reversecomplementDNA(dna_seq))
+
