@@ -22,16 +22,15 @@ Date: October 25, 2025
 
     The bonding of two complementary bases is called a base pair (bp).
     The length of a DNA molecule will commonly be given in 'bp' instead of 'nt'
-    By complementarity, once the order of bases is given on one strand, it is easy to deduce the sequence of bases in the complementary strand.
-"""
+    By complementarity, once the order of bases is given on one strand, it is easy to deduce the sequence of bases in the complementary strand."""
 
 """Sample Dataset Problem
 
 In DNA strings, symbols 'A' and 'T' are complements of each other, as are 'C' and 'G'.
-The reverse complement of a DNA string s is the string sc, formed by reversing the symbols of s, then taking the complement of each symbol (e.g., the reverse complement of "GTCA" is "TGAC").
+The reverse complement of a DNA string s is the string sᶜ, formed by reversing the symbols of s, then taking the complement of each symbol (e.g., the reverse complement of "GTCA" is "TGAC").
 
     Given: A DNA string s of length at most 1000 bp.
-    Return: The reverse complement sc of s."""
+    Return: The reverse complement sᶜ of s."""
 
 from DNAToolkit import reversecomplementDNA
 
