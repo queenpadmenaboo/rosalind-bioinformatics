@@ -6,6 +6,24 @@ Author: Bunsree Patel
 Date: October 25, 2025
 """
 
+"""In the mid-20th century, Rosalind Franklin and Raymond Gosling created a high resolution X-ray image of DNA. 
+    James Watson and Francis Crick consolidated the image with a number of chemical results and proposed the following structure for DNA:
+        1. DNA molecule is made up of two strands, running in opposite directions.
+        2. Each nitrogenous base bonds to a base in the opposite strand.
+            Adenine always bonds with thymine, and cytosine always bonds with guanine.
+            'A' bonds with 'T'
+            'C' bonds with 'G'
+            The complement of a base is the base to which it always bonds.
+        3. The two strands are twisted together into a long spiral staircase structure called a double helix.
+
+        1. and 2. compose the secondary structure of DNA because they dictate how bases from different strands interact with each other.
+
+        3. describes the tertiary structure or 3-dimensional shape of the DNA molecule
+
+    The bonding of two complementary bases is called a base pair (bp).
+    The length of a DNA molecule will commonly be given in 'bp' instead of 'nt'
+    By complementarity, once the order of bases is given on one strand, it is easy to deduce the sequence of bases in the complementary strand.
+"""
 
 """Sample Dataset Problem
 
@@ -13,13 +31,20 @@ In DNA strings, symbols 'A' and 'T' are complements of each other, as are 'C' an
 The reverse complement of a DNA string s is the string sc, formed by reversing the symbols of s, then taking the complement of each symbol (e.g., the reverse complement of "GTCA" is "TGAC").
 
     Given: A DNA string s of length at most 1000 bp.
-    Return: The reverse complement sc of s.
-
-"""
+    Return: The reverse complement sc of s."""
 
 from DNAToolkit import reversecomplementDNA
 
 dna_seq = "AAAACCCGGT"
 
-#Get reverse complement
+# Get reverse complement
+print(reversecomplementDNA(dna_seq))
+
+
+
+"""Actual Dataset Problem"""
+
+dna_seq = "CACATCAGTGCAACCATACAATTTTGGCATACTGCACCACTTCGAACCTATTCGTTACGTTTTTCCTAGATTGCGACCTCTGGCCTATCAGTTGCTTTGTATTTGTGCCTCGACCTACTGACTCATTAGCGCTGCAACGCGAACCACGAGAAGGAAACGGTGAAGCAATGGGCTCAGCGTGACACACCGGATCATGTGTGTAAAAGATATGAAAAACGTCGTTGAAACCGTTACGGGCAAGTCGAGGATTTTGGCTTGGGAGATAATTTGCACTCGGATAAAAAATGGTCAGGTCACAATACAGTAGTATACCCGCTATGTGCCGTATAATGCTCTGGACGACAACAGCCAATAGCTAATGCCAGAGCCGTCCGTTGGGTCTTAATAGTAACACAATGAGCACAACTTCCTTATCATCCACGCGTGGCATCGTTGTTCCCGAGATGGCCCCTGGATCCTCGGGAAGGGTCTTCCAGATCTACTAGGGTGCGTCCACTTAACGATTCAGAGACGCATTCGCAAATCCACGGGCATTAATCGCACCTCACGACGGATGTCGTAAAGCCACTGCAAAAATTGTGCGCCTTACTAAGGAAAATCGAAAAACGGGATCATCCTGGGACCGATTTGGACGACCGGCTCGGAACGGCAACACGCGTGAGTTCACTGTTCTATTTTTTACATTTGACTTAAAGTAGCCTCATATTACCGCGTCATTCCTACACATTGGCATAACCGGGTCAAAAATGTCAGTAACACGTCTTCGACTACCAACAGACATCTAACATAGCCCTTGCTACCTCTAGGCTAGACAGGATACTCTGTAGCTTTTCGATGGAGATTGGGAATTTTACCGAGGTACCTCCCTCTAAAGCATCTCGATGCGTCTTTGGGACCTGAGGGGAGGTCTTTAGTGAAAAGATGAAGGCTGAACTACATACGGTTTAATCGACTAGAGAAATCGACGCTCA"
+
+# Get reverse complement
 print(reversecomplementDNA(dna_seq))
