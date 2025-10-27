@@ -29,9 +29,20 @@ When finding the n-th term of a sequence defined by a recurrence relation, use t
 The problem introduces dynamic programming, which successively builds up solutions by using the answers to smaller cases.
 
     Given: Positive integers n ≤ 40 and k ≤ 5.
-    Return: The total number of rabbit pairs that will be present after n months, if we begin with 1 pair and in each generation, every pair of reproduction-age rabbits produces a litter of k rabbit pairs (instead of only 1 pair)."""
+    Return: The total number of rabbit pairs that will be present after n months, if we begin with 1 pair and in each generation, every pair of reproduction-age rabbits produces a litter of k rabbit pairs (instead of only 1 pair).
+    n = 5 months
+    k = 3 rabbit pairs
 
-n = 5 
-k = 3
+"""
+
+def Fibonacci_Loop_Pythonic(months, offsprings):
+    parent, child = 1, 1
+    for itr in range(months - 1):
+        parent, child = parent + (child * offsprings), parent
+    return parent
+
+print(Fibonacci_Loop_Pythonic(31,2))
+
+
 
 
