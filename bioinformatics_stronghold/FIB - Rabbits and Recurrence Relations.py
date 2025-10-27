@@ -1,3 +1,5 @@
+print(">>> RUNNING NEW FILE <<<")
+
 """
 Rosalind Problem: FIB - Rabbits and Recurrence Relations
 Problem URL: http://rosalind.info/problems/fib/
@@ -36,13 +38,13 @@ The problem introduces dynamic programming, which successively builds up solutio
 """
 
 def Fibonacci_Loop_Pythonic(months, offsprings):
-    parent, child = 1, 1
-    for itr in range(months - 1):
-        parent, child = parent + (child * offsprings), parent
-    return parent
+    previous, current = 1, 1
+    for _ in range(2, months):
+        previous, current = current, current + (previous* offsprings)
+    return current
 
-print(Fibonacci_Loop_Pythonic(31,2))
+print(Fibonacci_Loop_Pythonic(5,3))
 
-
+print(Fibonacci_Loop_Pythonic(35,5))
 
 
