@@ -1,5 +1,3 @@
-print(">>> RUNNING NEW FILE <<<")
-
 """
 Rosalind Problem: FIB - Rabbits and Recurrence Relations
 Problem URL: http://rosalind.info/problems/fib/
