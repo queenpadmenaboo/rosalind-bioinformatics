@@ -49,7 +49,14 @@ range(start, stop) generates a sequence of integers starting at 'start' abd stop
 So range(2, months) produces:
     2, 3, 4, ..., months - 1
     for example range (2, 6) --> [2, 3, 4, 5], the loop will run months - 2 times (since the first two months are already defined by base cases).
+
 **Note, index 2 corresponds to the 3rd month - i.e. the next month after our base cases.**
+Python loop index 0 | Corresponding month (not used)
+Python loop index 1 | Corresponding month (not used)
+Python loop index 2 | Corresponding month - Month 3
+Python loop index 3 | Corresponding month - Month 4
+Python loop index 4 | Corresponding month - Month 5
+Python loop index 5 | Corresponding month - Month 6
 
 Why it starts at 2:
     The Fibonacci-style model that was written starts with Month 1 and Month 2 already known:
