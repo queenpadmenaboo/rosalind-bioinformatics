@@ -94,7 +94,7 @@ def rabbit_population(months, offspringpairs):
 
     # Calculate population from month 3 onward
     for month in range(2, months):
-        prev_gen, current_gen = current_gen, current_gen + (prev_gen *(offspringpairs))
+        prev_gen, current_gen = current_gen, current_gen + (prev_gen * offspringpairs)
     return current_gen
 
 print(rabbit_population(5,3))
