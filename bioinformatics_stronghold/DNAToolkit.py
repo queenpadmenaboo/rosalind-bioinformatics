@@ -86,6 +86,4 @@ def parse_fasta(fasta_str):
 
     The keys are: "Rosalind_8375", "Rosalind_4074", "Rosalind_0002", etc.
 
-    The values are: the long DNA sequence strings made of A,T,G,C.
-
-    """
+    The values are: the long DNA sequence strings made of A,T,G,C."""
