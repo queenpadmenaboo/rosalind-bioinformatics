@@ -54,3 +54,25 @@ def reversecomplementDNA(dna_seq):
     # Build reverse complement strand
     rev_complementDNA = ''.join([complement[nuc] for nuc in dna_seq[::-1]])
     return rev_complementDNA
+
+def gc_content(dna_seq):
+    dna_seq = validateSeq(dna_seq)
+    # Returns GC content as a percentage
+    gc = dna_seq.count('G') + dna_seq.count('C')
+
+    return (gc/ len(dna_seq)) * 100
+"""len means length, it's a built-in Python function that returns the number of items in something."""
+
+def parse_fasta(fasta_str):
+    # Parses a FASTA string into a dictionary {id: dna_seq}
+    fasta_dict = {}
+    current_id = None
+
+    for line in fasta_str.strip().splitlines():
+        if line.startswith(">"):
+            current_id = line[1:].strip()
+            fasta_dict[current_id] = ""
+        else:
+            fasta_dict[current_id] += line.strip()
+            
+    return fasta_dict            
