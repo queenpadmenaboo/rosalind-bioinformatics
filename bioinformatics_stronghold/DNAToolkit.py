@@ -65,14 +65,27 @@ def gc_content(dna_seq):
 
 def parse_fasta(fasta_str):
     # Parses a FASTA string into a dictionary {id: dna_seq}
-    fasta_dict = {}
-    current_id = None
+    fasta_dict = {}     # Initialize empty dictionary to store sequences
+    current_id = None   # Tracks the current sequence ID while parsing
 
-    for line in fasta_str.strip().splitlines():
-        if line.startswith(">"):
-            current_id = line[1:].strip()
-            fasta_dict[current_id] = ""
+    for line in fasta_str.strip().splitlines():     # Loop through each line
+        if line.startswith(">"):                    # If line starts with '>', it's a sequence ID
+            current_id = line[1:].strip()           # Remove '>' and whitespace to get the ID
+            fasta_dict[current_id] = ""             # Initialize empty string for this sequence
         else:
-            fasta_dict[current_id] += line.strip()
+            fasta_dict[current_id] += line.strip()  # Append sequence lines to current ID
             
-    return fasta_dict            
+    return fasta_dict                               # Return dictionary of all sequences
+
+"""In Python, a dictionary is a data structure that stores data as key-value pairs.
+    Example: person = {"name": "Z", "age": 24}
+    "name" --> key
+    "Z" --> value
+    "age" --> key
+    "24" --> value
+
+    The keys are: "Rosalind_8375", "Rosalind_4074", "Rosalind_0002", etc.
+
+    The values are: the long DNA sequence strings made of A,T,G,C.
+
+    """

@@ -150,15 +150,52 @@ CGCATATAAGCCAAAGACTGAGCTTGGGC"""
 # Parse the FASTA
 fasta_dict = parse_fasta(fasta_input)
 
+"""Converts a raw FASTA-formatted string into a Python dictionary.
+Keys = sequence IDS (e.g., 'Rosalind_8044')
+Values = DNA sequences (continuous strings of A, T, G, C).
+
+Example output structure:
+{  
+    "Rosalind_8859": "CTAGGTAAGAGATTACGCC...",
+    "Rosalind_4212": "ACTATAAGCCGTAGACTTG..."
+}"""
+
 # Find the sequence with the highest GC content
 max_id = None
 max_gc = 0.0
+
+"""Initializes two variables to keep track of the sequence with the highest GC percentage.
+max_id will store the sequence label (e.g., "Rosalind_8859").
+max_gc will store the highest GC% value found so far (starts at 0)."""
 
 for seq_id, dna_seq in fasta_dict.items():
     gc = gc_content(dna_seq)
     if gc > max_gc:
         max_gc = gc
         max_id = seq_id
+
+"""Loops through each key-value pair in the FASTA dictionary.
+1st code line: seq_id = the FASTA header (ID).
+                dna_seq = the nucleotide sequence string.
+
+2nd code line: Calls gc_content() function to calculate the percentage of G and C bases in that DNA sequence.
+
+                **Formula: GC% = [(G+C) / total bases] x 100**
+                Returns a floating-point number like 61.144578.
+
+3rd code line: Compares the current GC% with the highest found so far. 
+                If it's higher than anything seen before, it's the new maximum.
+                If no, leave max_gc and max_id as they are.
+
+4th code line: Stores the new highest GC%
+                max_gc always contains the largest GC content encountered up to this point in the loop.
+
+5th code line: Stores the ID of the sequence that has this new maximum GC%.
+                Ensures that at the end, max_id shows which sequence has the highest GC content.
+
+The loop checks every sequence in the FASTA-formatted data.
+By always updating only when a higher GC% is found, after the loop finishes, max_gc is the largest GC content, and max_id is the ID of that sequence.         
+"""
 
 # Print final answer
 print(max_id)
