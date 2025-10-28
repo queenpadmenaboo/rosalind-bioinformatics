@@ -34,15 +34,63 @@ The problem introduces dynamic programming, which successively builds up solutio
     k = 3 rabbit pairs
 
 """
-
 def Fibonacci_Loop_Pythonic(months, offsprings):
     previous, current = 1, 1
     for _ in range(2, months):
-        previous, current = current, current + (previous* offsprings)
+        previous, current = current, current + (previous * offsprings)
     return current
 
-print(Fibonacci_Loop_Pythonic(5,3))
+print(Fibonacci_Loop_Pythonic(6,2))
+print(Fibonacci_Loop_Pythonic(35, 5))
 
-print(Fibonacci_Loop_Pythonic(35,5))
+"""
+range (2, months) means:
+range(start, stop) generates a sequence of integers starting at 'start' abd stopping before 'stop'.
+So range(2, months) produces:
+    2, 3, 4, ..., months - 1
+    for example range (2, 6) --> [2, 3, 4, 5], the loop will run months - 2 times (since the first two months are already defined by base cases).
+**Note, index 2 corresponds to the 3rd month - i.e. the next month after our base cases.**
 
+Why it starts at 2:
+    The Fibonacci-style model that was written starts with Month 1 and Month 2 already known:
 
+    Month 1 --> 1 pair (the first newborns)
+    Month 2 --> 1 pair (they've matured, still only 1 pair total)
+
+    From Month 3 onward, we apply the recurrence rule:
+    Fₙ = Fₙ₋₁ + (Fₙ₋₂ x k); (with F₁ = F₂ = 1 to initiate the sequence).
+
+c - small (children) rabbits. They have to mature and reproduce in the next cycle only.
+C - mature (parents) rabbits. They can reproduce and move to the next cycle.
+
+Month 1: [c]
+Month 2: [C]
+Month 3: [C c c]
+Month 4: [C c c C C]
+Month 5: [C c c C C C c c C c c]
+Month 6: [C c c C C C c c C c c C c c C C C c c C C]
+
+Output (5,3): 19
+Output (6,2): 21
+
+Output (35,5): 875089148811941
+"""
+
+"""Actual Dataset Problem"""
+
+# Code rewritten with clearer variable names
+
+def rabbit_population(months, offspringpairs):
+    # Base cases: month 1 and 2 each start with 1 pair
+    prev_gen = 1 # rabbits from two months ago (mature)
+    current_gen = 1 # rabbits from last month (total so far)
+
+    # Calculate population from month 3 onward
+    for month in range(2, months):
+        prev_gen, current_gen = current_gen, current_gen + (prev_gen *(offspringpairs))
+    return current_gen
+
+print(rabbit_population(5,3))
+print(rabbit_population(35,5))
+
+"""Output: 875089148811941"""
