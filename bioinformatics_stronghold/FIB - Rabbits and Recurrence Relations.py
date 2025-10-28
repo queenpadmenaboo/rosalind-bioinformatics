@@ -100,4 +100,4 @@ def rabbit_population(months, offspringpairs):
 print(rabbit_population(5,3))
 print(rabbit_population(35,5))
 
-"""Output: 875089148811941"""
+"""Output (35,5): 875089148811941"""
