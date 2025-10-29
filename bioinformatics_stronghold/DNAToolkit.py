@@ -87,3 +87,23 @@ def parse_fasta(fasta_str):
     The keys are: "Rosalind_8375", "Rosalind_4074", "Rosalind_0002", etc.
 
     The values are: the long DNA sequence strings made of A,T,G,C."""
+
+def hamming_distance(s, t):
+    """
+    Calculate the Hamming distance between two DNA strings of equal length.
+
+    Args:
+        s (str): First DNA string.
+        t (str): Second DNA string.
+
+    Returns:
+        int: Number of positions where s and t differ.
+    """
+    if len(s) != len(t):
+        raise ValueError("Strings must be of equal length to compute Hamming distance.")
+    
+    distance = 0
+    for a, b in zip(s,t):
+            if a != b:
+                distance += 1
+    return distance
