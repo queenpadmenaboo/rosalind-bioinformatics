@@ -4,14 +4,16 @@ Author: Bunsree Patel
 Date: October 24, 2025
 """
 
-Nucleotides = ['A', 'C', 'G', 'T']
+# Define nucleotide sets
+DNA_Nucleotides = ['A', 'C', 'G', 'T']
+RNA_Nucleotides = ['A', 'C', 'G', 'U']
 
 
 # Check the sequence to make sure it is a valid DNA string
 def validateSeq(dna_seq):
     tmpseq = dna_seq.upper()
     for nuc in tmpseq:
-        if nuc not in Nucleotides:
+        if nuc not in DNA_Nucleotides:
             return False
     return tmpseq
 
@@ -24,7 +26,7 @@ def countNucFrequency(seq):
 def transcribeDNAtoRNA(dna_seq):
     # Validate input
     for nuc in dna_seq.upper():
-        if nuc not in Nucleotides:
+        if nuc not in DNA_Nucleotides:
             raise ValueError("Invalid DNA sequence")
     
     # Replace T with U to make RNA
@@ -34,7 +36,7 @@ def transcribeDNAtoRNA(dna_seq):
 def complementDNA(dna_seq):
     # Validate input
     for nuc in dna_seq.upper():
-        if nuc not in Nucleotides:
+        if nuc not in DNA_Nucleotides:
             raise ValueError("Invalid DNA sequence")
     
     # Complement mapping
@@ -107,3 +109,43 @@ def hamming_distance(s, t):
             if a != b:
                 distance += 1
     return distance
+
+
+# RNA codon translation table
+rnacodon_table = {
+    'UUU':'F', 'CUU':'L', 'AUU':'I', 'GUU':'V',
+    'UUC':'F', 'CUC':'L', 'AUC':'I', 'GUC':'V',
+    'UUA':'L', 'CUA':'L', 'AUA':'I', 'GUA':'V',
+    'UUG':'L', 'CUG':'L', 'AUG':'M', 'GUG':'V',
+    'UCU':'S', 'CCU':'P', 'ACU':'T', 'GCU':'A',
+    'UCC':'S', 'CCC':'P', 'ACC':'T', 'GCC':'A',
+    'UCA':'S', 'CCA':'P', 'ACA':'T', 'GCA':'A',
+    'UCG':'S', 'CCG':'P', 'ACG':'T', 'GCG':'A',
+    'UAU':'Y', 'CAU':'H', 'AAU':'N', 'GAU':'D',
+    'UAC':'Y', 'CAC':'H', 'AAC':'N', 'GAC':'D',
+    'UAA':'Stop', 'CAA':'Q', 'AAA':'K', 'GAA':'E',
+    'UAG':'Stop', 'CAG':'Q', 'AAG':'K', 'GAG':'E',
+    'UGU':'C', 'CGU':'R', 'AGU':'S', 'GGU':'G',
+    'UGC':'C', 'CGC':'R', 'AGC':'S', 'GGC':'G',
+    'UGA':'Stop', 'CGA':'R', 'AGA':'R', 'GGA':'G',
+    'UGG':'W', 'CGG':'R', 'AGG':'R', 'GGG':'G'
+}
+
+# Check the sequence to make sure it is a valid RNA string
+def validateRNASeq(rna_seq):
+    tmpseq = rna_seq.upper()
+    for nuc in tmpseq:
+        if nuc not in RNA_Nucleotides:
+            return False
+    return tmpseq
+
+# Translate an RNA sequence into a protein string
+def translate_rna(rna_seq):
+    protein = ""
+    for i in range(0, len(rna_seq), 3):
+        codon = rna[i:i+3]
+        amino_acid = rnacodon_table.get(codon, '')
+        if amino_acid == 'Stop':
+            break
+        protein += amino_acid
+    return protein
