@@ -28,5 +28,17 @@ The location of a substring s[j:k] is its beginning position j; note that t will
 
     Given: Two DNA strings s and t (each of length at most 1 kbp).
     Return: All locations of t as a substring of s.
-
 """
+
+from DNAToolkit import find_substring_locations
+
+# Define strings
+s = "GATATATGCATATACTT"
+t = "ATAT"
+
+# Call the function
+result = find_substring_locations(s,t)
+
+# Format and print output
+print(' '.join(map(str, result)))
+"""Output: 2 4 10"""

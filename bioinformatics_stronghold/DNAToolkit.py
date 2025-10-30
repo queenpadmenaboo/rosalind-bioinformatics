@@ -63,7 +63,7 @@ def gc_content(dna_seq):
     gc = dna_seq.count('G') + dna_seq.count('C')
 
     return (gc/ len(dna_seq)) * 100
-"""len means length, it's a built-in Python function that returns the number of items in something."""
+    """len means length, it's a built-in Python function that returns the number of items in something."""
 
 def parse_fasta(fasta_str):
     # Parses a FASTA string into a dictionary {id: dna_seq}
@@ -149,3 +149,15 @@ def translate_rna(rna_seq):
             break
         protein += amino_acid
     return protein
+
+
+def find_substring_locations(s,t):
+    """
+    Find all locations of substring t in string s.
+    Returns 1-indexed positions (biology convention).
+    """
+    locations = []
+    for i in range(len(s) - len(t) + 1):
+        if s[i:i+len(t)] == t:
+            locations.append(i + 1)
+    return locations
