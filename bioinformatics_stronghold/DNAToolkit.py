@@ -143,7 +143,7 @@ def validateRNASeq(rna_seq):
 def translate_rna(rna_seq):
     protein = ""
     for i in range(0, len(rna_seq), 3):
-        codon = rna[i:i+3]
+        codon = rna_seq[i:i+3]
         amino_acid = rnacodon_table.get(codon, '')
         if amino_acid == 'Stop':
             break
