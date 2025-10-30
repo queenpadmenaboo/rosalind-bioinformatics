@@ -40,5 +40,5 @@ t = "ATAT"
 result = find_substring_locations(s,t)
 
 # Format and print output
-print(' '.join(map(str, result)))
+print(*result)
 """Output: 2 4 10"""
