@@ -67,7 +67,18 @@ In order to capture all possible pairs, we must account for both Bb x bb and bb 
     bb x Bb: 50% Bb, 50% bb (50% dominant and 50% recessive)
     bb x bb: 100% bb (100% recessive)"""
 
-# Option 1: Write as direct sum of dominant probabilities
+# Option 1: Subtract probability of recessive offspring (bb) because only Bb x Bb, Bb x bb, bb x Bb and bb x bb can yield recessive offspring (bb)
+p = 1- (
+    (m/total)*((m-1)/(total-1))*0.25 +      # heterozygous x heterozygous (Bb x Bb)
+    (m/total)*(n/(total-1))*0.5 +           # heterozygous x recessive (Bb x bb)
+    (n/total)*(m/(total-1))*0.5 +           # recessive x heterozygous (bb x Bb)
+    (n/total)*((n-1)/(total-1))             # both recessive (bb x bb)
+)
+
+print(round(p,5))
+"""Output: 0.78333"""
+
+# Option 2: Write as direct sum of dominant probabilities
 
 p = (
     (k/total)*((k-1)/(total-1)) +       # homozygous dominant x homozygous dominant (BB)
@@ -79,23 +90,13 @@ p = (
     (m/total)*(n/(total-1))*0.5 +       # heterozygous x recessive (Bb x bb)
     (n/total)*(m/(total-1))*0.5         # recessive x heterozygous (bb x Bb)
 )
+
 print(round(p,5))
+
 """No need to include bb x bb, since it gives a '0%' dominant offspring probability."""
 
-
-
-# Option 2:  Subtract probability of recessive offspring (bb) because only Bb x Bb, Bb x bb, bb x Bb and bb x bb can yield recessive offspring (bb)
-p = 1- (
-    (m/total)*((m-1)/(total-1))*0.25 +      # heterozygous x heterozygous (Bb x Bb)
-    (m/total)*(n/(total-1))*0.5 +           # heterozygous x recessive (Bb x bb)
-    (n/total)*(m/(total-1))*0.5 +           # recessive x heterozygous (bb x Bb)
-    (n/total)*((n-1)/(total-1))             # both recessive (bb x bb)
-)
-
-print(round(p,5))
-"""Output: 0.78333"""
-
 """Actual Dataset Problem"""
+# Using Option 1
 k, m, n = 24, 19, 22
 total = k + m + n
 
@@ -108,3 +109,19 @@ p = 1- (
 
 print(round(p,5))
 """Output: 0.76791"""
+
+# Using Option 2
+k, m, n = 24, 19, 22
+total = k + m + n
+
+p = (
+    (k/total)*((k-1)/(total-1)) +       # homozygous dominant x homozygous dominant (BB)
+    (k/total)*(m/(total-1)) +           # homozygous dominant x heterozygous (BB x Bb)
+    (k/total)*(n/(total-1)) +           # homozygous dominant x homozygous recessive (BB x bb)
+    (m/total)*(k/(total-1)) +           # heterozygous x recessive (Bb x bb)
+    (n/total)*(k/(total-1)) +           # recessive x homozygous dominant (bb x BB)
+    (m/total)*((m-1)/(total-1))*0.75 +  # heterozygous x heterozygous (Bb x Bb)
+    (m/total)*(n/(total-1))*0.5 +       # heterozygous x recessive (Bb x bb)
+    (n/total)*(m/(total-1))*0.5         # recessive x heterozygous (bb x Bb)
+)
+print(round(p,5))
