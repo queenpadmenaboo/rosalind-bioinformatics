@@ -68,17 +68,17 @@ In order to capture all possible pairs, we must account for both Bb x bb and bb 
     bb x bb: 100% bb (100% recessive)"""
 
 # Option 1: Write as direct sum of dominant probabilities
+
 p = (
     (k/total)*((k-1)/(total-1)) +       # homozygous dominant x homozygous dominant (BB)
     (k/total)*(m/(total-1)) +           # homozygous dominant x heterozygous (BB x Bb)
     (k/total)*(n/(total-1)) +           # homozygous dominant x homozygous recessive (BB x bb)
     (m/total)*(k/(total-1)) +           # heterozygous x recessive (Bb x bb)
     (n/total)*(k/(total-1)) +           # recessive x homozygous dominant (bb x BB)
-    (m/total)*((m-1)/(total-1))*0.75 +     # heterozygous x heterozygous (Bb x Bb)
+    (m/total)*((m-1)/(total-1))*0.75 +  # heterozygous x heterozygous (Bb x Bb)
     (m/total)*(n/(total-1))*0.5 +       # heterozygous x recessive (Bb x bb)
-    (n/total)*(m/(total-1))*0.5 +       # recessive x heterozygous (bb x Bb)
+    (n/total)*(m/(total-1))*0.5         # recessive x heterozygous (bb x Bb)
 )
-
 print(round(p,5))
 """No need to include bb x bb, since it gives a '0%' dominant offspring probability."""
 
