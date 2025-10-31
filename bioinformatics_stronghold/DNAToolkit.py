@@ -17,9 +17,15 @@ def validateSeq(dna_seq):
             return False
     return tmpseq
 
-def countNucFrequency(seq):
+def countDNANucFrequency(dna_seq):
     tmpFreqDict = {"A": 0, "C": 0, "G": 0, "T": 0}
-    for nuc in seq:
+    for nuc in dna_seq:
+        tmpFreqDict[nuc] += 1
+    return tmpFreqDict
+
+def countRNANucFrequency(rna_seq):
+    tmpFreqDict = {"A": 0, "C": 0, "G": 0, "U": 0}
+    for nuc in rna_seq:
         tmpFreqDict[nuc] += 1
     return tmpFreqDict
 
