@@ -135,5 +135,3 @@ for uid, fasta_text in proteins.items():
 
 
 
-
-
