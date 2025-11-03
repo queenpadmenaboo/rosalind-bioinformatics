@@ -117,7 +117,6 @@ proteins = {
 # Loop through all proteins and find N-glycosylation motif positions
 
 print("Finding N-glycosylation motifs:")
-print("-" * 40)
 for uid, fasta_text in proteins.items():
     seq = clean_fasta(fasta_text)
     positions = find_n_glycosylation(seq)
@@ -135,6 +134,33 @@ for uid, fasta_text in proteins.items():
     # 'print(*positions) - prints all starting positions of the motif, separated by spaces
 
 
+"""Actual Dataset Problem"""
+import re
+import requests
+from ProteinToolkit import clean_fasta, find_n_glycosylation, fetch_uniprot_fasta
 
+uniprot_ids = """
+B0RU89
+Q5U1Y9
+P01044_KNH1_BOVIN
+P04921_GLPC_HUMAN
+B2G8U6
+P04441_HG2A_MOUSE
+P20840_SAG1_YEAST
+Q66GC7
+P07359_GPBA_HUMAN
+Q05557
+P01880_DTC_HUMAN
+P00740_FA9_HUMAN
+"""
 
+uniprot_ids = [uid.strip() for uid in uniprot_ids.strip().split("\n") if uid.strip()]
 
+for uid in uniprot_ids:
+    accession = uid.split("_")[0]
+    fasta_text = fetch_uniprot_fasta(accession)
+    seq = clean_fasta(fasta_text)
+    positions = find_n_glycosylation(seq)
+    if positions:
+        print(uid)
+        print(*positions)
