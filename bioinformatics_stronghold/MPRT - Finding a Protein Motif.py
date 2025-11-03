@@ -140,18 +140,19 @@ import requests
 from ProteinToolkit import clean_fasta, find_n_glycosylation, fetch_uniprot_fasta
 
 uniprot_ids = """
-B0RU89
-Q5U1Y9
-P01044_KNH1_BOVIN
-P04921_GLPC_HUMAN
-B2G8U6
+P80370_DLK_HUMAN
+P01588_EPO_HUMAN
 P04441_HG2A_MOUSE
-P20840_SAG1_YEAST
-Q66GC7
-P07359_GPBA_HUMAN
-Q05557
-P01880_DTC_HUMAN
-P00740_FA9_HUMAN
+P08709_FA7_HUMAN
+P27918_PROP_HUMAN
+C0QUK8
+P05113_IL5_HUMAN
+P21735
+B6J655
+B3PYU7
+P01047_KNL2_BOVIN
+P28653_PGS1_MOUSE
+P01876_ALC1_HUMAN
 """
 
 uniprot_ids = [uid.strip() for uid in uniprot_ids.strip().split("\n") if uid.strip()]
