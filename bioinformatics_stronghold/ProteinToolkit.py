@@ -15,10 +15,11 @@ def clean_fasta(fasta_text):
     return "".join(seq_lines)
 
 # Define function to find N-glycosylation motif positions
-
 def find_n_glycosylation(seq):
-    motif = r"N[^P][ST][^P]"
-    positions = [m.start() + 1 for m in re.finditer(motif, seq)]
+    positions = []
+    for i in range(len(seq) - 3):
+        if seq[i] == 'N' and seq[i + 1] != 'P' and seq[i + 2] in 'ST' and seq[i+3] != 'P':
+            positions.append(i +1)
     return positions
 
 """Input: seq (string) - cleaned amino acid sequence
@@ -43,4 +44,4 @@ def fetch_uniprot_fasta(uid):
 """ Input: uid (string) - UniProt accesion ID
     Output: fasta_text (string) - raw FASTA text"""
 
-  
+

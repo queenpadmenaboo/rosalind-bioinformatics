@@ -39,19 +39,7 @@ For example, the data for protein B5ZC00 can be found at http://www.uniprot.org/
     Return: For each protein possessing the N-glycosylation motif, output its given access ID followed by a list of locations in the protein string where the motif can be found.
 """
 
-
-import re
-import requests
-
-from ProteinToolkit import clean_fasta, find_n_glycosylation, fetch_uniprot_fasta
-
 # FASTA format always starts with '>' character, followed by an identifier and optional description
-
-protein_A2Z669 = """>sp|A2Z669|CSPLT_ORYSI CASP-like protein 5A2 OS=Oryza sativa subsp. indica OX=39946 GN=OsI_33147 PE=3 SV=1
-MRASRPVVHPVEAPPPAALAVAAAAVAVEAGVGAGGGAAAHGGENAQPRGVRMKDPPGAP
-GTPGGLGLRLVQAFFAAAALAVMASTDDFPSVSAFCYLVAAAILQCLWSLSLAVVDIYAL
-LVKRSLRNPQAVCIFTIGDGITGTLTLGAACASAGITVLIGNDLNICANNHCASFETATA
-MAFISWFALAPSCVLNFWSMASR"""
 
 # sp → Swiss-Prot section of UniProt
 # A2Z669 → UniProt accession number
@@ -65,8 +53,31 @@ MAFISWFALAPSCVLNFWSMASR"""
 # Each line of the sequence contains amino acid residues in single-letter codes.
 # Line breaks are allowed anywhere — tools read it as one continuous sequence.
 
+# Loop through all proteins and find N-glycosylation motif positions
 
-protein_B5ZC00 = """>sp|B5ZC00|SYG_UREU1 Glycine--tRNA ligase OS=Ureaplasma urealyticum serovar 10 (strain ATCC 33699 / Western) OX=565575 GN=glyQS PE=3 SV=1
+# 'uid' is the protein's unique identifier like 'A2Z669'
+# 'fasta_text' is the raw FASTA string for that protein
+# 'seq' now contains full protein sequence as a single string
+# 'positions' uses regular expressions to search for the motif pattern in 'seq'
+# 're.finditer' returns all occurences of 'motif' in 'seq'
+# 'm.start()' gives the starting index (0-based), +1 converts to 1-based indexing
+# 'if positions' only prints results if the motif is found at least once
+# 'print(uid)' - prints the protein ID
+# 'print(*positions) - prints all starting positions of the motif, separated by spaces
+
+
+"""Sample Dataset Problem"""
+import re
+import requests
+from ProteinToolkit import clean_fasta, find_n_glycosylation
+
+fasta_data = """
+>sp|A2Z669|CSPLT_ORYSI CASP-like protein 5A2 OS=Oryza sativa subsp. indica OX=39946 GN=OsI_33147 PE=3 SV=1
+MRASRPVVHPVEAPPPAALAVAAAAVAVEAGVGAGGGAAAHGGENAQPRGVRMKDPPGAP
+GTPGGLGLRLVQAFFAAAALAVMASTDDFPSVSAFCYLVAAAILQCLWSLSLAVVDIYAL
+LVKRSLRNPQAVCIFTIGDGITGTLTLGAACASAGITVLIGNDLNICANNHCASFETATA
+MAFISWFALAPSCVLNFWSMASR
+>sp|B5ZC00|SYG_UREU1 Glycine--tRNA ligase OS=Ureaplasma urealyticum serovar 10 (strain ATCC 33699 / Western) OX=565575 GN=glyQS PE=3 SV=1
 MKNKFKTQEELVNHLKTVGFVFANSEIYNGLANAWDYGPLGVLLKNNLKNLWWKEFVTKQ
 KDVVGLDSAIILNPLVWKASGHLDNFSDPLIDCKNCKARYRADKLIESFDENIHIAENSS
 NEEFAKVLNDYEISCPTCKQFNWTEIRHFNLMFKTYQGVIEDAKNVVYLRPETAQGIFVN
@@ -74,9 +85,8 @@ FKNVQRSMRLHLPFGIAQIGKSFRNEITPGNFIFRTREFEQMEIEFFLKEESAYDIFDKY
 LNQIENWLVSACGLSLNNLRKHEHPKEELSHYSKKTIDFEYNFLHGFSELYGIAYRTNYD
 LSVHMNLSKKDLTYFDEQTKEKYVPHVIEPSVGVERLLYAILTEATFIEKLENDDERILM
 DLKYDLAPYKIAVMPLVNKLKDKAEEIYGKILDLNISATFDNSGSIGKRYRRQDAIGTIY
-CLTIDFDSLDDQQDPSFTIRERNSMAQKRIKLSELPLYLNQKAHEDFQRQCQK"""
-
-protein_P07204 = """>sp|P07204|TRBM_HUMAN Thrombomodulin OS=Homo sapiens OX=9606 GN=THBD PE=1 SV=2
+CLTIDFDSLDDQQDPSFTIRERNSMAQKRIKLSELPLYLNQKAHEDFQRQCQK
+>sp|P07204|TRBM_HUMAN Thrombomodulin OS=Homo sapiens OX=9606 GN=THBD PE=1 SV=2
 MLGVLVLGALALAGLGFPAPAEPQPGGSQCVEHDCFALYPGPATFLNASQICDGLRGHLM
 TVRSSVAADVISLLLNGDGGVGRRRLWIGLQLPPGCGDPKRLGPLRGFQWVTGDNNTSYS
 RWARLDLNGAPLCGPLCVAVSAAEATVPSEPIWEEQQCEVKADGFLCEFHFPATCRPLAV
@@ -86,9 +96,8 @@ DQPGSYSCMCETGYRLAADQHRCEDVDDCILEPSPCPQRCVNTQGGFECHCYPNYDLVDG
 ECVEPVDPCFRANCEYQCQPLNQTSYLCVCAEGFAPIPHEPHRCQMFCNQTACPADCDPN
 TQASCECPEGYILDDGFICTDIDECENGGFCSGVCHNLPGTFECICGPDSALARHIGTDC
 DSGKVDGGDSGSGEPPPSPTPGSTLTPPAVGLVHSGLLIGISIASLCLVVALLALLCHLR
-KKQGAARAKMEYKCAAPSKEVVLQHVRTERTPQRL"""
-
-protein_P20840 = """>sp|P20840|SAG1_YEAST Alpha-agglutinin OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) OX=559292 GN=SAG1 PE=1 SV=2
+KKQGAARAKMEYKCAAPSKEVVLQHVRTERTPQRL
+>sp|P20840|SAG1_YEAST Alpha-agglutinin OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) OX=559292 GN=SAG1 PE=1 SV=2
 MFTFLKIILWLFSLALASAININDITFSNLEITPLTANKQPDQGWTATFDFSIADASSIR
 EGDEFTLSMPHVYRIKLLNSSQTATISLADGTEAFKCYVSQQAAYLYENTTFTCTAQNDL
 SSYNTIDGSITFSLNFSDGGSSYEYELENAKFFKSGPMLVKLGNQMSDVVNFDPAAFTEN
@@ -99,69 +108,32 @@ ETGNRTTSEVISHVVTTSTKLSPTATTSLTIAQTSIYSTDSNITVGTDIHTTSEVISDVE
 TISRETASTVVAAPTSTTGWTGAMNTYISQFTSSSFATINSTPIISSSAVFETSDASIVN
 VHTENITNTAAVPSEEPTFVNATRNSLNSFCSSKQPSSPSSYTSSPLVSSLSVSKTLLST
 SFTPSVPTSNTYIKTKNTGYFEHTALTTSSVGLNSFSETAVSSQGTKIDTFLVSSLIAYP
-SSASGSQLSGIQQNFTSTSLMISTYEGKASIFFSAELGSIIFLLLSYLLF"""
-
-# Test cleaning function
-cleaned_seq = clean_fasta(protein_A2Z669)
-print("Testing clean_fasta:")
-print(cleaned_seq)
-
-# Put proteins in a dictionary
-proteins = { 
-    "A2Z669": protein_A2Z669,
-    "B5ZC00": protein_B5ZC00,
-    "P07204_TRBM_HUMAN": protein_P07204,
-    "P20840_SAG1_YEAST": protein_P20840
-}
-
-# Loop through all proteins and find N-glycosylation motif positions
-
-print("Finding N-glycosylation motifs:")
-for uid, fasta_text in proteins.items():
-    seq = clean_fasta(fasta_text)
-    positions = find_n_glycosylation(seq)
-    if positions:
-        print(uid)
-        print(*positions)
-    # 'uid' is the protein's unique identifier like 'A2Z669'
-    # 'fasta_text' is the raw FASTA string for that protein
-    # 'seq' now contains full protein sequence as a single string
-    # 'positions' uses regular expressions to search for the motif pattern in 'seq'
-    # 're.finditer' returns all occurences of 'motif' in 'seq'
-    # 'm.start()' gives the starting index (0-based), +1 converts to 1-based indexing
-    # 'if positions' only prints results if the motif is found at least once
-    # 'print(uid)' - prints the protein ID
-    # 'print(*positions) - prints all starting positions of the motif, separated by spaces
-
-
-"""Actual Dataset Problem"""
-import re
-import requests
-from ProteinToolkit import clean_fasta, find_n_glycosylation, fetch_uniprot_fasta
-
-uniprot_ids = """
-P80370_DLK_HUMAN
-P01588_EPO_HUMAN
-P04441_HG2A_MOUSE
-P08709_FA7_HUMAN
-P27918_PROP_HUMAN
-C0QUK8
-P05113_IL5_HUMAN
-P21735
-B6J655
-B3PYU7
-P01047_KNL2_BOVIN
-P28653_PGS1_MOUSE
-P01876_ALC1_HUMAN
+SSASGSQLSGIQQNFTSTSLMISTYEGKASIFFSAELGSIIFLLLSYLLF
 """
 
-uniprot_ids = [uid.strip() for uid in uniprot_ids.strip().split("\n") if uid.strip()]
+# Split by '>' to get individual FASTA entries
+entries = fasta_data.strip().split('>')[1:]
 
-for uid in uniprot_ids:
-    accession = uid.split("_")[0]
-    fasta_text = fetch_uniprot_fasta(accession)
-    seq = clean_fasta(fasta_text)
+for entry in entries:
+    lines = entry.split('\n')
+    header = lines[0]
+    
+    # Extract uid - just use the third part
+    parts = header.split('|')
+    accession = parts[1]
+    name = parts[2].split()[0]
+    
+    if name[0].isdigit() or '_' not in name:
+        uid = accession
+    else:
+        uid = f"{accession}_{name}"
+        
+    # Get sequence (rest of the lines)
+    seq = ''.join(lines[1:])
+    
+    # Find motifs
     positions = find_n_glycosylation(seq)
+    
     if positions:
         print(uid)
         print(*positions)
