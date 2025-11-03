@@ -66,10 +66,17 @@ For example, the data for protein B5ZC00 can be found at http://www.uniprot.org/
 # 'print(*positions) - prints all starting positions of the motif, separated by spaces
 
 
-"""Sample Dataset Problem"""
 import re
 import requests
 from ProteinToolkit import clean_fasta, find_n_glycosylation
+
+# Original IDs from Rosalind
+original_ids = """
+A2Z669
+B5ZC00
+P07204_TRBM_HUMAN
+P20840_SAG1_YEAST
+""".strip().split('\n')
 
 fasta_data = """
 >sp|A2Z669|CSPLT_ORYSI CASP-like protein 5A2 OS=Oryza sativa subsp. indica OX=39946 GN=OsI_33147 PE=3 SV=1
@@ -118,16 +125,20 @@ for entry in entries:
     lines = entry.split('\n')
     header = lines[0]
     
-    # Extract uid - just use the third part
     parts = header.split('|')
     accession = parts[1]
     name = parts[2].split()[0]
     
-    if name[0].isdigit() or '_' not in name:
+    # Match original ID format
+    uid = None
+    for orig_id in original_ids:
+        if accession in orig_id:
+            uid = orig_id
+            break
+   
+    if not uid:
         uid = accession
-    else:
-        uid = f"{accession}_{name}"
-        
+          
     # Get sequence (rest of the lines)
     seq = ''.join(lines[1:])
     
