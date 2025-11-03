@@ -45,35 +45,7 @@ http://rest.uniprot.org/uniprotkb/uniprot_id.fasta
 
     Given: At most 15 UniProt Protein Database access IDs.
     Return: For each protein possessing the N-glycosylation motif, output its given access ID followed by a list of locations in the protein string where the motif can be found.
-
 """
-
-# FASTA format always starts with '>' character, followed by an identifier and optional description
-
-# sp → Swiss-Prot section of UniProt
-# A2Z669 → UniProt accession number
-# CSPLT_ORYSI → protein short name / identifier
-# CASP-like protein 5A2 → protein name
-# OS=Oryza sativa subsp. indica → organism name (rice, indica subspecies)
-# OX=39946 → taxonomy ID
-# GN=OsI_33147 → gene name
-# PE=3 → protein existence evidence level (3 = inferred from homology)
-# SV=1 → sequence version
-# Each line of the sequence contains amino acid residues in single-letter codes.
-# Line breaks are allowed anywhere — tools read it as one continuous sequence.
-
-# Loop through all proteins and find N-glycosylation motif positions
-
-# 'uid' is the protein's unique identifier like 'A2Z669'
-# 'fasta_text' is the raw FASTA string for that protein
-# 'seq' now contains full protein sequence as a single string
-# 'positions' uses regular expressions to search for the motif pattern in 'seq'
-# 're.finditer' returns all occurences of 'motif' in 'seq'
-# 'm.start()' gives the starting index (0-based), +1 converts to 1-based indexing
-# 'if positions' only prints results if the motif is found at least once
-# 'print(uid)' - prints the protein ID
-# 'print(*positions) - prints all starting positions of the motif, separated by spaces
-
 
 import re
 import requests
@@ -127,33 +99,65 @@ SFTPSVPTSNTYIKTKNTGYFEHTALTTSSVGLNSFSETAVSSQGTKIDTFLVSSLIAYP
 SSASGSQLSGIQQNFTSTSLMISTYEGKASIFFSAELGSIIFLLLSYLLF
 """
 
-# Split by '>' to get individual FASTA entries
+# FASTA format always starts with '>' character, followed by an identifier and optional description
+
+"""
+    -sp → Swiss-Prot section of UniProt
+    -A2Z669 → UniProt accession number
+    -CSPLT_ORYSI → protein short name / identifier
+    -CASP-like protein 5A2 → protein name
+    -OS=Oryza sativa subsp. indica → organism name (rice, indica subspecies)
+    -OX=39946 → taxonomy ID
+    -GN=OsI_33147 → gene name
+    -PE=3 → protein existence evidence level (3 = inferred from homology)
+    -SV=1 → sequence version
+    -Each line of the sequence contains amino acid residues in single-letter codes.
+    -Line breaks are allowed anywhere — tools read it as one continuous sequence.
+"""
+# =============================================
+# Loop through all proteins and find N-glycosylation motif positions
+# =============================================
+
+"""
+    -'uid' is the protein's unique identifier like 'A2Z669'
+    -'fasta_text' is the raw FASTA string for that protein
+    -'seq' now contains full protein sequence as a single string
+    -'positions' uses regular expressions to search for the motif pattern in 'seq'
+    -'re.finditer' returns all occurences of 'motif' in 'seq'
+    -'m.start()' gives the starting index (0-based), +1 converts to 1-based indexing
+    -'if positions' only prints results if the motif is found at least once
+    -'print(uid)' - prints the protein ID
+    -'print(*positions) - prints all starting positions of the motif, separated by spaces
+"""
+
+# Split the FASTA data by '>' to get individual protein entries
 entries = fasta_data.strip().split('>')[1:]
 
 for entry in entries:
     lines = entry.split('\n')
     header = lines[0]
     
+    # Parse header to extract accession and name
     parts = header.split('|')
-    accession = parts[1]
-    name = parts[2].split()[0]
+    accession = parts[1]            #UniProt accession number
+    name = parts[2].split()[0]      # Short protein name/identifier
     
-    # Match original ID format
+    # Match the accession with the original ID list format
     uid = None
     for orig_id in original_ids:
         if accession in orig_id:
             uid = orig_id
             break
-   
     if not uid:
-        uid = accession
+        uid = accession             # fallback to accession if not found in original_ids
           
     # Get sequence (rest of the lines)
     seq = ''.join(lines[1:])
     
-    # Find motifs
+    # Find N-glycosylation motif positions
     positions = find_n_glycosylation(seq)
     
+    # Print results if motif is found
     if positions:
         print(uid)
         print(*positions)
