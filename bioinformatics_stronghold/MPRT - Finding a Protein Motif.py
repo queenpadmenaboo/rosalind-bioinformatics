@@ -38,6 +38,13 @@ For example, the data for protein B5ZC00 can be found at http://www.uniprot.org/
     Given: At most 15 UniProt Protein Database access IDs.
     Return: For each protein possessing the N-glycosylation motif, output its given access ID followed by a list of locations in the protein string where the motif can be found.
 """
+
+
+import re
+import requests
+
+from ProteinToolkit import clean_fasta, find_n_glycosylation, fetch_uniprot_fasta
+
 # FASTA format always starts with '>' character, followed by an identifier and optional description
 
 protein_A2Z669 = """>sp|A2Z669|CSPLT_ORYSI CASP-like protein 5A2 OS=Oryza sativa subsp. indica OX=39946 GN=OsI_33147 PE=3 SV=1
@@ -94,11 +101,9 @@ VHTENITNTAAVPSEEPTFVNATRNSLNSFCSSKQPSSPSSYTSSPLVSSLSVSKTLLST
 SFTPSVPTSNTYIKTKNTGYFEHTALTTSSVGLNSFSETAVSSQGTKIDTFLVSSLIAYP
 SSASGSQLSGIQQNFTSTSLMISTYEGKASIFFSAELGSIIFLLLSYLLF"""
 
-import re # 're' is Python's built-in module for working with regular expressions
-from ProteinToolkit import clean_fasta # Import the helper function
-
-# Test definition
+# Test cleaning function
 cleaned_seq = clean_fasta(protein_A2Z669)
+print("Testing clean_fasta:")
 print(cleaned_seq)
 
 # Put proteins in a dictionary
@@ -109,16 +114,13 @@ proteins = {
     "P20840_SAG1_YEAST": protein_P20840
 }
 
-# Define N-glycosylation motif
-motif = r"N[^P][ST][^P]"
-    # In the motif, N --> must be Asparagine, {P} --> any acid except Proline, [ST] --> either Serine or Threonine, {P} --> any amino acid except Proline
-    # Proline has a rigid ring structure that prevents the chain from folding properly, so glycosylation won't happen if a Proline is in either of the {P} positions
-    # That is why the first and last {P} are explicitly there --> they are two different positions in the motif
-
 # Loop through all proteins and find N-glycosylation motif positions
+
+print("Finding N-glycosylation motifs:")
+print("-" * 40)
 for uid, fasta_text in proteins.items():
     seq = clean_fasta(fasta_text)
-    positions = [m.start() + 1 for m in re.finditer(motif,seq)]
+    positions = find_n_glycosylation(seq)
     if positions:
         print(uid)
         print(*positions)
@@ -131,6 +133,7 @@ for uid, fasta_text in proteins.items():
     # 'if positions' only prints results if the motif is found at least once
     # 'print(uid)' - prints the protein ID
     # 'print(*positions) - prints all starting positions of the motif, separated by spaces
+
 
 
 
