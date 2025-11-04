@@ -1,9 +1,15 @@
 import os
 
 # Paths
-repo_folder = r"C:\Users\bunsr\rosalind-bioinformatics\bioinformatics_stronghold"
-table_file = os.path.join(repo_folder, "rosalind_table.md")
-readme_file = os.path.join(repo_folder, "README.md")
+repo_root = r"C:\Users\bunsr\rosalind-bioinformatics"  # Root of the repository
+stronghold_folder = os.path.join(repo_root, "bioinformatics_stronghold")
+table_file = os.path.join(stronghold_folder, "rosalind_table.md")
+readme_file = os.path.join(repo_root, "README.md")  # README at root level
+
+# Check if table file exists
+if not os.path.exists(table_file):
+    print(f"❌ Error: {table_file} not found!")
+    exit(1)
 
 # Read the table
 with open(table_file, "r", encoding="utf-8") as f:
@@ -12,7 +18,7 @@ with open(table_file, "r", encoding="utf-8") as f:
 # Static README header and progress tracker
 readme_header = """# 🧬 Rosalind-Bioinformatics
 
-Tracking my solutions to Rosalind’s challenges across multiple tracks:
+Tracking my solutions to Rosalind's challenges across multiple tracks:
 
 - **Python Village** – Basic programming problems with Python  
 - **Bioinformatics Stronghold** – Core bioinformatics problems  
@@ -38,4 +44,5 @@ full_readme = f"{readme_header}\n{table_content}"
 with open(readme_file, "w", encoding="utf-8") as f:
     f.write(full_readme)
 
-print(f"✅ README.md updated dynamically with {table_file}")
+print(f"✅ README.md updated at {readme_file}")
+print(f"📄 Table source: {table_file}")
