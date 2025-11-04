@@ -18,8 +18,32 @@ def clean_fasta(fasta_text):
     lines = fasta_text.strip().splitlines()
     seq_lines = [line.strip() for line in lines if not line.startswith(">")]
     return "".join(seq_lines)
+"""Extracts sequence as a single string. Use when raw sequence is needed for motifs, translations, etc."""
 
-# Define function to find N-glycosylation motif positions in a protein sequence
+
+# Parse FASTA text into a dictionary of {ID: sequence}
+def parse_fasta(fasta_text):
+    """Parse FASTA text into a dictionary {id: sequence}.
+
+    Args:
+        fasta_text (str): Raw FASTA format text containing one or more sequences.
+    Returns:
+        dict: Keys are FASTA IDs, values are DNA sequences as strings.
+    """
+    fasta_dict = {}
+    current_id = None
+
+    for line in fasta_text.strip().splitlines():
+        if line.startswith(">"):
+            current_id = line[1:].strip()
+            fasta_dict[current_id] = ""
+        else:
+            fasta_dict[current_id] += line.strip()
+    return fasta_dict
+"""Extracts all sequences separately, keeping their IDs. Use when handling multiple sequences individually, e.g., for profile matrices, consensus strings, or batch processing."""  
+
+
+# Find N-glycosylation motif positions in a protein sequence
 def find_n_glycosylation(seq):
     """Find N-glycosylation motif positions in a protein sequence.
 
@@ -45,7 +69,7 @@ def find_n_glycosylation(seq):
             positions.append(i + 1)
     return positions
 
-# Function to fetch FASTA from UniProt
+# Function to fetch FASTA from UniProt by accession ID
 def fetch_uniprot_fasta(uid):
     """Fetch FASTA sequence from UniProt database. 
     
@@ -62,3 +86,5 @@ def fetch_uniprot_fasta(uid):
     if response.status_code != 200:
         raise ValueError(f"Could not fetch UniProt ID '{uid}' (status code: {response.status_code})")
     return response.text
+    """status code 200 means Success, so != i.e. the request failed"""
+
