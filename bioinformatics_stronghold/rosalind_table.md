@@ -14,6 +14,5 @@
 | October 30, 2025 | PROT - Translating RNA into Protein | [x] |
 | October 30, 2025 | SUBS - Finding a Motif in DNA | [x] |
 | October 31, 2025 | IPRB - Mendel's First Law | [x] |
-| November 3, 2025 | generate_table | [x] |
 | November 3, 2025 | MPRT - Finding a Protein Motif | [x] |
 | November 3, 2025 | ProteinToolkit | [x] |
