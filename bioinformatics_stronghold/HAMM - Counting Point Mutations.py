@@ -11,7 +11,7 @@ This is on account of the biological principle of parsimony, which demands that 
 
 """Sample Dataset Problem
 
-Given two strings s and t of equal length, the Hamming distance between s and t, denoted dₕ(s,t), is the numbner of corresponding symbols that differ in s and t.
+Given two strings s and t of equal length, the Hamming distance between s and t, denoted dₕ(s,t), is the number of corresponding symbols that differ in s and t.
 
     Given: Two strings s and t of equal length (not exceeding 1kbp).
     Return: The Hamming distance dₕ(s,t)."""
