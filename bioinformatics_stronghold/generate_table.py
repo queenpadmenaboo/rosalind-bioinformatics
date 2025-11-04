@@ -19,7 +19,7 @@ results = []
 
 # Loop through all Python files in the folder
 for file_name in os.listdir(rosalind_folder):
-    if file_name.endswith(".py") and not file_name.startswith("__") and file_name not in ["generate_table.py", "main.py"]:
+    if file_name.endswith(".py") and not file_name.startswith("__") and file_name not in ["generate_table.py", "main.py", "update_readme.py"]:
         file_path = os.path.join(rosalind_folder, file_name)
         with open(file_path, "r", encoding="utf-8") as f:
             # Check first 10 lines for a date
