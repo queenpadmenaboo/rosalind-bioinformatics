@@ -1,10 +1,10 @@
 # 🧬 Rosalind-Bioinformatics
 
-Tracking my solutions to Rosalind's challenges across multiple tracks:
+My solutions to Rosalind bioinformatics problems:
 
-- **Python Village** – Basic programming problems with Python  
-- **Bioinformatics Stronghold** – Core bioinformatics problems  
-- **Bioinformatics Armory** – Advanced bioinformatics problems  
+- **Python Village** – Python programming fundamentals
+- **Bioinformatics Stronghold** – Core bioinformatics algorithms
+- **Bioinformatics Armory** – Advanced bioinformatics techniques
 
 ---
 
