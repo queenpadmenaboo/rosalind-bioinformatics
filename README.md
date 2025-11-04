@@ -35,3 +35,4 @@ My solutions to Rosalind bioinformatics problems:
 | October 31, 2025 | IPRB - Mendel's First Law | [x] |
 | November 3, 2025 | MPRT - Finding a Protein Motif | [x] |
 | November 3, 2025 | ProteinToolkit | [x] |
+| November 4, 2025 | CONS - Consensus and Profile | [x] |
