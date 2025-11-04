@@ -6,7 +6,7 @@ Date: November 3, 2025
 import os
 import re
 
-# Path to your local Rosalind repo folder
+# Path to local Rosalind repo folder
 rosalind_folder = r"C:\Users\bunsr\rosalind-bioinformatics\bioinformatics_stronghold"
 
 # Output Markdown file inside the repo
