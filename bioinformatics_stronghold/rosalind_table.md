@@ -4,7 +4,6 @@
 |------|---------|-----------|
 | October 24, 2025 | DNA - Counting DNA Nucleotides | [x] |
 | October 24, 2025 | DNAToolkit | [x] |
-| October 24, 2025 | main | [x] |
 | October 25, 2025 | REVC - Complementing a Strand of DNA | [x] |
 | October 25, 2025 | RNA - Transcribing DNA into RNA | [x] |
 | October 27, 2025 | FIB - Rabbits and Recurrence Relations | [x] |
