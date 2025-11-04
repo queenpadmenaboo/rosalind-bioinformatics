@@ -47,9 +47,10 @@ http://rest.uniprot.org/uniprotkb/uniprot_id.fasta
     Return: For each protein possessing the N-glycosylation motif, output its given access ID followed by a list of locations in the protein string where the motif can be found.
 """
 
-import re
+import re 
+# 're' is Python's built-in module for working with regular expressions
 import requests
-from ProteinToolkit import clean_fasta, find_n_glycosylation
+from ProteinToolkit import find_n_glycosylation
 
 # Original IDs from Rosalind
 original_ids = """
