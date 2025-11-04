@@ -49,7 +49,6 @@ http://rest.uniprot.org/uniprotkb/uniprot_id.fasta
 
 import re 
 # 're' is Python's built-in module for working with regular expressions
-import requests
 from ProteinToolkit import find_n_glycosylation
 
 # Original IDs from Rosalind
@@ -138,19 +137,16 @@ for entry in entries:
     lines = entry.split('\n')
     header = lines[0]
     
-    # Parse header to extract accession and name
-    parts = header.split('|')
-    accession = parts[1]            #UniProt accession number
-    name = parts[2].split()[0]      # Short protein name/identifier
+    accession = header.split('|')[1]            #UniProt accession number
     
-    # Match the accession with the original ID list format
+    # Match original Rosalind ID or fall back to accession
     uid = None
     for orig_id in original_ids:
         if accession in orig_id:
             uid = orig_id
             break
     if not uid:
-        uid = accession             # fallback to accession if not found in original_ids
+        uid = next((oid for oid in original_ids if accession in oid), accession)
           
     # Get sequence (rest of the lines)
     seq = ''.join(lines[1:])
@@ -328,6 +324,15 @@ for entry in entries:
     if positions:
         print(uid)
         print(*positions)
+
+"""If there are no glycosylation sites and want to show, can rewrite code:
+    if positions:
+        print(uid)
+        print(*positions)
+    else:
+        print(uid)
+        print("No motifs found")
+"""
 
 """Output:
 P11171_41_HUMAN
