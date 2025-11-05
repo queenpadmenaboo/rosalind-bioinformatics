@@ -88,3 +88,45 @@ def fetch_uniprot_fasta(uid):
     return response.text
     """status code 200 means Success, so != i.e. the request failed"""
 
+# Monoisotopic mass table in Da (residue masses after peptide bond formation)
+monoisotopic_mass = {
+    'A': 71.03711,
+    'C': 103.00919,
+    'D': 115.02694,
+    'E': 129.04259,
+    'F': 147.06841,
+    'G': 57.02146,
+    'H': 137.05891,
+    'I': 113.08406,
+    'K': 128.09496,
+    'L': 113.08406,
+    'M': 131.04049,
+    'N': 114.04293,
+    'P': 97.05276,
+    'Q': 128.05858,
+    'R': 156.10111,
+    'S': 87.03203,
+    'T': 101.04768,
+    'V': 99.06841,
+    'W': 186.07931,
+    'Y': 163.06333
+}
+
+Water_Mass = 18.01056 # mass of one H₂O molecule, used for full protein mass
+
+"""| Amino Acid     | Mass            | Known Cross-check Source                     |
+| -------------- | --------------- | -------------------------------------------- |
+| Glycine (G)    | 57.02146        | Standard monoisotopic                        |
+| Tryptophan (W) | 186.07931       | Largest natural residue                      |
+| Leu / Ile      | both ~113.08406 | Correct: **isobaric pair** (same exact mass) |"""
+
+# Function to compute peptide mass (internal mass, no terminal water)
+def internal_peptide_mass(protein_seq):
+    total = 0.0
+    for aa in protein_seq:
+        total += monoisotopic_mass[aa]
+    return total
+
+# Function to compute full protein mass (includes terminal water)
+def full_protein_mass(protein_seq):
+    return internal_peptide_mass(protein_seq) + Water_Mass
