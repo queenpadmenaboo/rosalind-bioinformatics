@@ -97,6 +97,6 @@ with open(output_file, "w", encoding="utf-8") as f:
     f.write("|------|---------|----------|-----------|\n")
     for location in sorted(grouped_results.keys()):
         for date, problem, loc in grouped_results[location]:
-            f.write(f"| {date} | {problem} | {location} | [x] |\n")
+            f.write(f"| {date} | {problem} | {location} | [✅] |\n")
 
 print(f"\n✅ Rosalind table updated (grouped by location): {output_file}")
