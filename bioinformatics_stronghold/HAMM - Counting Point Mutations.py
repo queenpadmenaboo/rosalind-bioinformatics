@@ -1,7 +1,7 @@
 """
 Rosalind Problem: HAMM - Counting Point Mutations
 Problem URL: http://rosalind.info/problems/hamm/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 29, 2025
 """

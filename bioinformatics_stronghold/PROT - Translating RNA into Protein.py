@@ -1,7 +1,7 @@
 """
 Rosalind Problem: PROT - Translating RNA into Protein
 Problem URL: http://rosalind.info/problems/prot/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 30, 2025
 """

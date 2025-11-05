@@ -19,26 +19,34 @@ results = []
 
 # Loop through all Python files in the folder
 for file_name in os.listdir(rosalind_folder):
-    if file_name.endswith(".py") and not file_name.startswith("__") and file_name not in ["generate_table.py", "main.py", "update_readme.py"]:
+    if file_name.endswith(".py") and not file_name.startswith("__") and file_name not in ["generate_table.py", "main.py", "update_readme.py", "DNAToolkit.py", "FibonacciNumbers.py", "ProteinToolkit.py"]:
         file_path = os.path.join(rosalind_folder, file_name)
-        with open(file_path, "r", encoding="utf-8") as f:
-            # Check first 10 lines for a date
-            lines = f.readlines()[:10]
-            date_found = None
-            for line in lines:
-                match = date_pattern.search(line)
-                if match:
-                    date_found = match.group()
-                    break
-            if not date_found:
-                date_found = "Unknown"
+                
 
-            problem_name = file_name.replace(".py", "")
-            results.append((date_found, problem_name))
+        with open(file_path, "r", encoding="utf-8") as f:
+            # Check first 10 lines for a date and location
+            lines = f.readlines()[:10]
+
+
+            date_found = "Unknown"
+            location_found = "Unknown"
+
+            for line in lines:
+                # Find date
+                match_date = date_pattern.search(line)
+                if match_date:
+                    date_found = match_date.group()
+
+                # Find location header like: "# Location: Python Village"
+                if "Location:" in line:
+                    location_found = line.split("Location:")[1].strip()
+
+        problem_name = file_name.replace(".py", "")
+        results.append((date_found, problem_name, location_found))
 
 # Helper: turn "October 24, 2025" into sortable tuple (year, month, day)
 def sort_key(item):
-    date_str, _ = item
+    date_str, _, _ = item
     months = {
         'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5,
         'June': 6, 'July': 7, 'August': 8, 'September': 9,
@@ -59,9 +67,9 @@ results.sort(key=sort_key)
 # Write Markdown
 with open(output_file, "w", encoding="utf-8") as f:
     f.write("# Rosalind Problem Tracker\n\n")
-    f.write("| Date | Problem | Completed |\n")
-    f.write("|------|---------|-----------|\n")
-    for date, problem in results:
-        f.write(f"| {date} | {problem} | [x] |\n")
+    f.write("| Date | Problem | Location | Completed |\n")
+    f.write("|------|---------|----------|-----------|\n")
+    for date, problem, location in results:
+        f.write(f"| {date} | {problem} | {location} | [x] |\n")
 
 print(f"\n✅ Rosalind table updated: {output_file}")

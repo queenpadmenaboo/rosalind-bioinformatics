@@ -1,7 +1,7 @@
 """
 Rosalind Problem: MPRT - Finding a Protein Motif
 Problem URL: http://rosalind.info/problems/mprt/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: November 3, 2025
 """

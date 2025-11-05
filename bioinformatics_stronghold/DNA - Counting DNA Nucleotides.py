@@ -1,7 +1,7 @@
 """
 Rosalind Problem: DNA - Counting DNA Nucleotides
 Problem URL: http://rosalind.info/problems/dna/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 24, 2025
 """

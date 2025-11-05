@@ -1,7 +1,7 @@
 """
 Rosalind Problem: IPRB - Mendel's First Law
 Problem URL: http://rosalind.info/problems/iprb/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 31, 2025
 """

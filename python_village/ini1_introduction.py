@@ -1,7 +1,7 @@
 """
 Rosalind Problem: INI1 - Installing Python
 Problem URL: http://rosalind.info/problems/ini1/
-
+Location: Python Village
 Author: Bunsree Patel
 Date: October 15, 2025
 """

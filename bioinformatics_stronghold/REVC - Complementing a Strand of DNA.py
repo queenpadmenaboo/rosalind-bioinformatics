@@ -1,7 +1,7 @@
 """
 Rosalind Problem: REVC - Complementing a Strand of DNA
 Problem URL: http://rosalind.info/problems/revc/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 25, 2025
 """

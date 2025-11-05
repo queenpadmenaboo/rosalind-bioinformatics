@@ -1,7 +1,7 @@
 """
 Rosalind Problem: INI4 - Conditions and Loops
 Problem URL: http://rosalind.info/problems/ini4/
-
+Location: Python Village
 Author: Bunsree Patel
 Date: October 20, 2025
 """

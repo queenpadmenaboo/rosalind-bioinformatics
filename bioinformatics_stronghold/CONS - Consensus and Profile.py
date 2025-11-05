@@ -1,7 +1,7 @@
 """
 Rosalind Problem: CONS - Consensus and Profile
 Problem URL: http://rosalind.info/problems/cons/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: November 4, 2025
 """

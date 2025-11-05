@@ -1,7 +1,7 @@
 """
 Rosalind Problem: FIB - Rabbits and Recurrence Relations
 Problem URL: http://rosalind.info/problems/fib/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 27, 2025
 """

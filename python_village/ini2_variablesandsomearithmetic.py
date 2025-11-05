@@ -1,7 +1,7 @@
 """
 Rosalind Problem: INI2 - Variables and Some Arithmetic
 Problem URL: http://rosalind.info/problems/ini2/
-
+Location: Python Village
 Author: Bunsree Patel
 Date: October 15, 2025
 """

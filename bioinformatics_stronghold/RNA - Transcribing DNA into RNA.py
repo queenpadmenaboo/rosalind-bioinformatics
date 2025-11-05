@@ -1,7 +1,7 @@
 """
 Rosalind Problem: RNA - Transcribing DNA into RNA
 Problem URL: http://rosalind.info/problems/rna/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 25, 2025
 """
