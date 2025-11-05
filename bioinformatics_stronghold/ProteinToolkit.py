@@ -121,12 +121,12 @@ Water_Mass = 18.01056 # mass of one H₂O molecule, used for full protein mass
 | Leu / Ile      | both ~113.08406 | Correct: **isobaric pair** (same exact mass) |"""
 
 # Function to compute peptide mass (internal mass, no terminal water)
-def internal_peptide_mass(protein_seq):
+def internal_peptide_mass(peptide_seq):
     total = 0.0
-    for aa in protein_seq:
+    for aa in peptide_seq:
         total += monoisotopic_mass[aa]
     return total
 
-# Function to compute full protein mass (includes terminal water)
-def full_protein_mass(protein_seq):
-    return internal_peptide_mass(protein_seq) + Water_Mass
+# Function to compute full peptide mass (includes terminal water)
+def full_peptide_mass(peptide_seq):
+    return internal_peptide_mass(peptide_seq) + Water_Mass
