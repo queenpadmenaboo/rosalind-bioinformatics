@@ -1,7 +1,7 @@
 """
 Rosalind Problem: SUBS - Finding a Motif in DNA
 Problem URL: http://rosalind.info/problems/subs/
-
+Location: Bioinformatics Stronghold
 Author: Bunsree Patel
 Date: October 30, 2025
 """
