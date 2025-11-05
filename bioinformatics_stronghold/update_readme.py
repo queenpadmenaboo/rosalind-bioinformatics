@@ -1,15 +1,16 @@
-import os
+import os       # Provides a way to interact with operating system. Makes script portable
+import sys      # Gives access to system-specific parameters and functions. Provides proper termination when error occurs.
 
 # Paths
-repo_root = r"C:\Users\bunsr\rosalind-bioinformatics"  # Root of the repository
+repo_root = r"C:\Users\bunsr\rosalind-bioinformatics"                   # Root of the repository
 stronghold_folder = os.path.join(repo_root, "bioinformatics_stronghold")
-table_file = os.path.join(stronghold_folder, "rosalind_table.md")
-readme_file = os.path.join(repo_root, "README.md")  # README at root level
+table_file = os.path.join(stronghold_folder, "rosalind_table.md")       # Table source
+readme_file = os.path.join(repo_root, "README.md")                      # Output README at root level
 
 # Check if table file exists
 if not os.path.exists(table_file):
     print(f"❌ Error: {table_file} not found!")
-    exit(1)
+    sys.exit(1)
 
 # Read the table
 with open(table_file, "r", encoding="utf-8") as f:
@@ -20,9 +21,9 @@ readme_header = """# 🧬 Rosalind-Bioinformatics
 
 My solutions to Rosalind bioinformatics problems:
 
-- **Python Village** – Python programming fundamentals
-- **Bioinformatics Stronghold** – Core bioinformatics algorithms
-- **Bioinformatics Armory** – Advanced bioinformatics techniques
+- **Python Village** - Python programming fundamentals
+- **Bioinformatics Stronghold** - Core bioinformatics algorithms
+- **Bioinformatics Armory** - Advanced bioinformatics techniques
 
 ---
 
@@ -38,7 +39,7 @@ My solutions to Rosalind bioinformatics problems:
 """
 
 # Combine header + table
-full_readme = f"{readme_header}\n{table_content}"
+full_readme = f"{readme_header}\n{table_content}\n"
 
 # Write README.md
 with open(readme_file, "w", encoding="utf-8") as f:
