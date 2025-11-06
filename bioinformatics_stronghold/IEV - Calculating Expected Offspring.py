@@ -42,8 +42,17 @@ def iev():
 sample_input = [1, 0, 0, 1, 0, 1]
 print(f"Sample input: {sample_input}")
 print(f"Expected dominant offspring: {calculate_expected_dominant_offspring(sample_input)}")
+"""Output: 
+Sample input: [1, 0, 0, 1, 0, 1]
+Expected dominant offspring: 3.5"""
 
-    
-    
 
 
+"""Actual Dataset Problem"""
+
+sample_input = [16148, 17391, 16865, 19555, 16960, 18881]
+print(f"Sample input: {sample_input}")
+print(f"Expected dominant offspring: {calculate_expected_dominant_offspring(sample_input)}")
+"""Output:
+Sample input: [16148, 17391, 16865, 19555, 16960, 18881]
+Expected dominant offspring: 147100.5"""
