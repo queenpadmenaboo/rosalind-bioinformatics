@@ -130,3 +130,39 @@ def internal_peptide_mass(peptide_seq):
 # Function to compute full peptide mass (includes terminal water)
 def full_peptide_mass(peptide_seq):
     return internal_peptide_mass(peptide_seq) + Water_Mass
+
+
+def calculate_expected_dominant_offspring(couples):
+    """
+    Calculate the expected number of offspring with dominant phenotype.
+    
+    Args:
+        couples: List of 6 integers representing number of couples for each genotype pairing:
+                [AA-AA, AA-Aa, AA-aa, Aa-Aa, Aa-aa, aa-aa]
+
+    Returns:
+        Expected number of offspring displaying dominant phenotype 
+    """
+
+    # Probability of dominant phenotypes for each pairing, based on Mendelian genetics
+    probabilities = [
+        1.0,    # AA × AA: 100% dominant (AA, AA, AA, AA)
+        1.0,    # AA × Aa: 100% dominant (AA, AA, Aa, Aa)
+        1.0,    # AA × aa: 100% dominant (Aa, Aa, Aa, Aa)
+        0.75,   # Aa × Aa: 75% dominant (AA, Aa, Aa, aa)
+        0.5,    # Aa × aa: 50% dominant (Aa, Aa, aa, aa)
+        0.0     # aa × aa: 0% dominant (aa, aa, aa, aa)
+    ]
+
+    # Each couple has exactly 2 offspring
+    offspring_per_couple = 2
+
+    # Calculate expected value
+    # E(x) = sum of (number of couples x offspring per couple x probability)
+    expected_value = 0
+
+    for i in range(6):
+        expected_value += couples[i] * offspring_per_couple * probabilities[i]
+    
+    return expected_value
+
