@@ -166,3 +166,22 @@ def calculate_expected_dominant_offspring(couples):
     
     return expected_value
 
+
+from DNAToolkit import rnacodon_table
+
+def count_rna_strings(protein):
+    MOD = 1_000_000
+
+    # Count codons per amino acid and stop
+    codon_count = {}
+    for codon, aa in rnacodon_table.items():
+        codon_count[aa] = codon_count.get(aa, 0) + 1
+
+    result = 1
+    for aa in protein:
+        result = (result * codon_count[aa]) % MOD
+    
+    # Multiply by number of stop codons at the end
+    result = (result * codon_count['Stop']) % MOD
+
+    return result

@@ -35,6 +35,7 @@ My solutions to Rosalind bioinformatics problems:
 | November 4, 2025 | Consensus and Profile | Bioinformatics Stronghold | ✅ |
 | November 5, 2025 | Calculating Protein Mass | Bioinformatics Stronghold | ✅ |
 | November 6, 2025 | Calculating Expected Offspring | Bioinformatics Stronghold | ✅ |
+| November 6, 2025 | Inferring mRNA from Protein | Bioinformatics Stronghold | ✅ |
 | October 15, 2025 | Installing Python | Python Village | ✅ |
 | October 15, 2025 | Variables and Some Arithmetic | Python Village | ✅ |
 | October 16, 2025 | Strings and Lists | Python Village | ✅ |
