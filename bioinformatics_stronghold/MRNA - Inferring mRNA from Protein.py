@@ -18,7 +18,22 @@ and a x c ≡ b x d  mod  n. To check your understanding of these rules, you may
 As you will see in this exercise, some Rosalind problems will ask for a (very large) integer solution modulo a smaller number to avoid the computational pitfalls that arise with storing such large numbers.
 
     Given: A protein string of length at most 1000 aa.
-    Return: The total number of different RNA strings from which the protein could have been translated, modulo 1,000,000. (Don't neglect the importance of the stop codon in protein translation.)"""
+    Return: The total number of different RNA strings from which the protein could have been translated, modulo 1,000,000. (Don't neglect the importance of the stop codon in protein translation.)
+
+Computational Biology Context:
+This is the inverse of the Central Dogma translation step.
+    
+    Algorithm 'count_rna_strings' function uses:
+    1. Loop through each amino acid in 'protein'
+    2. Look up codon count for that amino acid (from rnacodon_table)
+    3. Multiply running total by codon count
+    4. Apply mod 1,000,000 at each step
+    5. Multiply by 3 for stop codons
+    6. Return result
+
+Why modulo:
+    - Prevents overflow for long proteins
+    - Math property: (a x b) mod n = ((a mod n) x (b mod n)) mod n"""
 
 from ProteinToolkit import count_rna_strings
 
