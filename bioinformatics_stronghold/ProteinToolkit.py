@@ -12,6 +12,7 @@ def clean_fasta(fasta_text):
 
     Args:
         fasta_text (str): Raw FASTA format text
+
     Returns:
         str: Cleaned amino acid sequence
     """
@@ -27,6 +28,7 @@ def parse_fasta(fasta_text):
 
     Args:
         fasta_text (str): Raw FASTA format text containing one or more sequences.
+    
     Returns:
         dict: Keys are FASTA IDs, values are DNA sequences as strings.
     """
@@ -57,6 +59,7 @@ def find_n_glycosylation(seq):
     
     Args:
         seq (str): Amino acid sequence (single-letter codes)
+
     Returns:
         list of int: 1-based starting indices of motif occurrences   
     """
@@ -75,6 +78,7 @@ def fetch_uniprot_fasta(uid):
     
     Args:
         uid (str): UniProt accession ID
+
     Returns:
         str: Raw FASTA text
     Raises:
@@ -170,7 +174,20 @@ def calculate_expected_dominant_offspring(couples):
 from DNAToolkit import rnacodon_table
 
 def count_rna_strings(protein):
+    """
+    Calculate the total number of possible RNA strings that can translate into a given protein sequence.
+
+    Arg:
+        protein: String representing the protein sequence (in single letter code).
+
+    Returns:
+       The total number of possible mRNA strings (modulo 1,000,000).
+    """
+
     MOD = 1_000_000
+    # MOD sets the divisor used for the modulo operation (1,000,000).
+    # The underscore makes large numbers easier to read - Python ignores the '_'.
+    # Using modulo keeps the result small by returning only the remainder after division by 1,000,000, as required by the problem. 
 
     # Count codons per amino acid and stop
     codon_count = {}
@@ -178,10 +195,12 @@ def count_rna_strings(protein):
         codon_count[aa] = codon_count.get(aa, 0) + 1
 
     result = 1
+
+    # Multiply possibilities for each amino acid, keeping result within MOD range
     for aa in protein:
         result = (result * codon_count[aa]) % MOD
     
-    # Multiply by number of stop codons at the end
+    # Multiply by number of possible stop codons (end of sequence)
     result = (result * codon_count['Stop']) % MOD
 
     return result
