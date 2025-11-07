@@ -170,6 +170,26 @@ def calculate_expected_dominant_offspring(couples):
     
     return expected_value
 
+# Check the sequence to make sure it is a valid protein sequence
+def validateProteinSeq(protein):
+    """
+    Validate a protein sequence.
+    
+    Args:
+        protein_seq (str): Input protein sequence.
+        
+    Returns:
+        str/False: Uppercase sequence if valid, False if invalid characters are found.
+    """
+    # Standard 20 amino acids (single-letter codes)
+    AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
+    
+    tmpseq = protein.upper()
+    for aa in tmpseq:
+        if aa not in AMINO_ACIDS:
+            return False
+    return tmpseq
+
 
 from DNAToolkit import rnacodon_table
 
