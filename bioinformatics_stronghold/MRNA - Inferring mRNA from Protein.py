@@ -18,21 +18,71 @@ and a x c ≡ b x d  mod  n. To check your understanding of these rules, you may
 As you will see in this exercise, some Rosalind problems will ask for a (very large) integer solution modulo a smaller number to avoid the computational pitfalls that arise with storing such large numbers.
 
     Given: A protein string of length at most 1000 aa.
-    Return: The total number of different RNA strings from which the protein could have been translated, modulo 1,000,000. (Don't neglect the importance of the stop codon in protein translation.)"""
+    Return: The total number of different RNA strings from which the protein could have been translated, modulo 1,000,000. (Don't neglect the importance of the stop codon in protein translation.)
 
-from ProteinToolkit import count_rna_strings
+Computational Biology Context:
+This is the inverse of the Central Dogma translation step.
+    
+    Algorithm: 'count_rna_strings' function uses:
+    1. Loop through each amino acid in 'protein'
+    2. Look up codon count for that amino acid (from rnacodon_table)
+    3. Multiply running total by codon count
+    4. Apply mod 1,000,000 at each step
+    5. Multiply by 3 for stop codons
+    6. Return result
 
-sample_input = "MA"
+Why modulo:
+    - Prevents overflow for long proteins
+    - Math property: (a x b) mod n = ((a mod n) x (b mod n)) mod n"""
 
+from ProteinToolkit import validateProteinSeq, count_rna_strings
+
+# Testing 'validateProteinSeq(protein)'
+sample_input = "MKTFFV"
 protein = sample_input.strip()
+valid_protein = validateProteinSeq(protein)
+if valid_protein:
+    print(f"Valid protein sequence: {valid_protein}")
+else:
+    print(f"Invalid protein sequence: {protein}")
+"""Output: Valid protein sequence: MKTFFV"""
+
+
+# Testing 'validateProteinSeq(protein)'
+sample_input = "MALINTYWSFDPSNQXRTB"
+protein = sample_input.strip()
+valid_protein = validateProteinSeq(protein)
+if valid_protein:
+    print(f"Valid protein sequence: {valid_protein}")
+else:
+    print(f"Invalid protein sequence: {protein}")
+"""Output: Invalid protein sequence: MALINTYWSFDPSNQXRTB"""
+
+# Sample Dataset Problem
+sample_input = "MA"
+protein = sample_input.strip()
+valid_protein = validateProteinSeq(protein)
+if valid_protein:
+    print(f"Valid protein sequence: {valid_protein}")
+else:
+    print(f"Invalid protein sequence: {protein}")
 result = count_rna_strings(protein)
 print(f"Total # of different RNA strings: {result}")
 """Output: 
-    Total # of differnt RNA strings: 12"""
+    Valid protein sequence: MA
+    Total # of different RNA strings: 12"""
+
+"""Actual Dataset Problem"""
 
 sample_input = "MTVKYATRYWDYQACEVCHQDCISQWTVPLTCKMQETSWCDNRWVHLPLCYMISNTFCERGAWLWFEAFQDIDVITWRYFEMGWNNVARQMNNVPSRIFWRNANPESHKDGADEMFHGVCWGGLWETGSYVTGFFMCSMYARYTASVAFIKYHSCCGMLGMVGCFWQSMDIADKYTMMFLSVKQMLCARLNCNYTSEYECADIPYHEKPFWNHWLTVGVPHQMPIEWAAKQFSGEQQCTSFVCKQYVAHTFFERWFDYKTYCKIGQKVHQKHNTWIDQFMETCYVVYHDSSIQTMNMNCTYDEVMPAGRWQAKYETMNKVKHMFWSKLYMPAVTRRIVHVWFRGYVRVLFVSRVHSEPLRKSKTTSFDSYCWYMRTPPYQCDGFAKEPEEQRMCPGMWEYNFHMVFTSWHEWLYKYWPAQMATHEVAGGYWLWIQWDRPLMFITKNCSARHILMPSVMWAQIPHMVPCWTQNVDCRDRPSLCMKWYPWVPQMGITPRKEGKYYANDFCFVIQYRPQTSGKWGVNMCCEYARILLHTACGIYAHQAFPTCIEGFNIFEGEWFEKKIPCLLGSNSVTVTNPYLKADMEWNGDWHPGRRHWDLENMVGIPSKAACEERHGHCVILKLLGKSKWRLWWEKRWDMQRMGKCFLMSRPMLDWEKEYWYEIGRNLGYFIEAVEEDGQLIVMHEIDFGNSIFHIFIFQVVPIMAVTYIPWFFICKEDCMSYACSRQRSPMGKGVLWMETYPLKCHCRVRKCEANSGYFCQKFAKSKHDKQKTFKVWMYPVQWREVRQKWDHKAAYGVPRGVKIYFASAHAYRYYVTNQSGWCEQMQQADSYTIKTHNCFEMRDNGTREFVGHRWLKMSEQDKANTSNYIDEMHVQFDVWEDNNASQLHKHSYPPYFGKMCFYWILTNWWRDDMQRYMSKWLYDQEPQHRGADRNKEWKMYYWYMLQEKYMAAKDWRSHAFNLPVYIKADWQGASGMGKFYVHFNHIKMMALWDDWP"
 protein = sample_input.strip()
+valid_protein = validateProteinSeq(protein)
+if valid_protein:
+    print(f"Valid protein sequence: {valid_protein}")
+else:
+    print(f"Invalid protein sequence: {protein}")
 result = count_rna_strings(protein)
 print(f"Total # of different RNA strings: {result}")
-"""Output: 
-    Total # of differnt RNA strings: 71744"""
+"""Output:
+    Valid protein sequence: MTVKYATRYWDYQACEVCHQDCISQWTVPLTCKMQETSWCDNRWVHLPLCYMISNTFCERGAWLWFEAFQDIDVITWRYFEMGWNNVARQMNNVPSRIFWRNANPESHKDGADEMFHGVCWGGLWETGSYVTGFFMCSMYARYTASVAFIKYHSCCGMLGMVGCFWQSMDIADKYTMMFLSVKQMLCARLNCNYTSEYECADIPYHEKPFWNHWLTVGVPHQMPIEWAAKQFSGEQQCTSFVCKQYVAHTFFERWFDYKTYCKIGQKVHQKHNTWIDQFMETCYVVYHDSSIQTMNMNCTYDEVMPAGRWQAKYETMNKVKHMFWSKLYMPAVTRRIVHVWFRGYVRVLFVSRVHSEPLRKSKTTSFDSYCWYMRTPPYQCDGFAKEPEEQRMCPGMWEYNFHMVFTSWHEWLYKYWPAQMATHEVAGGYWLWIQWDRPLMFITKNCSARHILMPSVMWAQIPHMVPCWTQNVDCRDRPSLCMKWYPWVPQMGITPRKEGKYYANDFCFVIQYRPQTSGKWGVNMCCEYARILLHTACGIYAHQAFPTCIEGFNIFEGEWFEKKIPCLLGSNSVTVTNPYLKADMEWNGDWHPGRRHWDLENMVGIPSKAACEERHGHCVILKLLGKSKWRLWWEKRWDMQRMGKCFLMSRPMLDWEKEYWYEIGRNLGYFIEAVEEDGQLIVMHEIDFGNSIFHIFIFQVVPIMAVTYIPWFFICKEDCMSYACSRQRSPMGKGVLWMETYPLKCHCRVRKCEANSGYFCQKFAKSKHDKQKTFKVWMYPVQWREVRQKWDHKAAYGVPRGVKIYFASAHAYRYYVTNQSGWCEQMQQADSYTIKTHNCFEMRDNGTREFVGHRWLKMSEQDKANTSNYIDEMHVQFDVWEDNNASQLHKHSYPPYFGKMCFYWILTNWWRDDMQRYMSKWLYDQEPQHRGADRNKEWKMYYWYMLQEKYMAAKDWRSHAFNLPVYIKADWQGASGMGKFYVHFNHIKMMALWDDWP
+    Total # of different RNA strings: 71744"""
