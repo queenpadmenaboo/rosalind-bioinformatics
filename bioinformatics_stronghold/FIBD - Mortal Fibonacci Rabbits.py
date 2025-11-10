@@ -45,8 +45,13 @@ def rabbit_population_mortal(months, lifespan):
     for month in range(2, months + 1):
         # Rabbits that can reproduce: born from max(1, month-lifespan) to month-2
         history[month] = sum(history[max(1, month - lifespan):month - 1])
+        """month - lifespan would be the month when the oldest living rabbits were born. 
+            Use max(1, month - lifespan) to ensure we never go below index 1 (since month 1 is the start).
+            The full slice gives all the rabbits that are:
+               -Old enough to reproduce (at least 1 month old, so not including month - 1)
+               -Still alive (not older than lifespan months)"""
 
-    # Total alive = rabbits born in the last 'lifespan' months
+    # Total alive extracts rabbits born in the last 'lifespan' months and sums them to get the total living population
     total_alive = sum(history[max(1, months - lifespan + 1):months + 1])
     return total_alive
 
