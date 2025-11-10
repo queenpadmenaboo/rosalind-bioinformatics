@@ -10,7 +10,7 @@ RNA_Nucleotides = ['A', 'C', 'G', 'U']
 
 
 # Check the sequence to make sure it is a valid DNA string
-def validateSeq(dna_seq):
+def validateDNASeq(dna_seq):
     tmpseq = dna_seq.upper()
     for nuc in tmpseq:
         if nuc not in DNA_Nucleotides:
