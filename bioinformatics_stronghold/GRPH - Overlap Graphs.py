@@ -47,15 +47,7 @@ we demand s≠t to prevent directed loops in the overlap graph (although directe
     Given: A collection of DNA strings in FASTA format having total length at most 10 kbp.
     Return: The adjacency list corresponding to O3. You may return edges in any order."""
 
-from DNAToolkit import parse_fasta
-
-# Extract the first k nucleotides from a DNA sequence
-def prefix(seq, k):
-    return seq[:k]
-
-# Extracts the last k nucleotides from a DNA sequence
-def suffix(seq, k):
-    return seq[-k:]
+from DNAToolkit import prefix, suffix, validateDNASeq,parse_fasta
 
 # Build the overlap graph for a collection of sequences
 def build_overlap_graph(fasta_dict, k):
@@ -68,6 +60,15 @@ def build_overlap_graph(fasta_dict, k):
     Returns:
         list of tuples: (seq_id1, seq_id2) where suffix of seq1 matches prefix of seq2
     """
+    # Validate all sequences first
+    validated_dna_dict = {}
+    for seq_id, seq in fasta_dict.items():
+        validated_seq = validateDNASeq(seq)
+        if validated_seq:
+            validated_dna_dict[seq_id] = validated_seq
+        else:
+            print(f"Warning: Invalid sequence for {seq_id}, skipping")
+       
     # Initialize list to store edges of the overlap graph
     edges = []      
 

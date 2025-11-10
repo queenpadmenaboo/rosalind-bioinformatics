@@ -167,3 +167,11 @@ def find_substring_locations(s,t):
         if s[i:i+len(t)] == t:
             locations.append(i + 1)
     return locations
+
+# Extract the first k nucleotides from a DNA sequence
+def prefix(seq, k):
+    return seq[:k]
+
+# Extracts the last k nucleotides from a DNA sequence
+def suffix(seq, k):
+    return seq[-k:]
