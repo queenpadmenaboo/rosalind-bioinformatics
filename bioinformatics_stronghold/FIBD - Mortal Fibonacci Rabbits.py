@@ -21,7 +21,7 @@ This problem uses Fₙ = Fₙ₋₁ + Fₙ₋₂ - Fₙ₋₍ₘ₊₁₎, where
     """
 
 
-def rabbit_population_mortal(months, lifespan, offspringpairs):
+def rabbit_population_mortal(months, lifespan):
     """
     Calculates the total number of rabbit pairs after a given number of months, if each rabbit lives for only a fixed number of months ('lifespan').
 
@@ -33,30 +33,31 @@ def rabbit_population_mortal(months, lifespan, offspringpairs):
        The total number of rabbit pairs that remain alive after n months.   
     """
 
-    # Base cases: month 1 and 2 each start with 1 pair
-    prev_gen = 1        # rabbits from two months ago (mature)
-    current_gen = 1     # rabbits from last month (total so far)
+    # If no months are simulated, there are no rabbits
+    if months == 0:
+        return 0
 
-    # Keep track of total rabbits per month to handle mortality
-    history = [1,1]     # population record for each month
+     # Track rabbits born in each month (they live for 'lifespan' months)
+    history = [0] * (months + 1)
+    history[1] = 1          # Start with 1 pair in month 1
 
     # Calculate population from month 3 onward
-    for month in range(2, months):
-        if month < lifespan:
-            # Before any rabbits die → normal Fibonacci growth
-            next_gen = current_gen + prev_gen
-        else:
-            # Rabbits that die = those born lifespan months ago
-            next_gen = current_gen + prev_gen - history[-(lifespan + 1)]
+    for month in range(2, months + 1):
 
-                # current_gen: total pairs alive last month
-                # prev_gen: number of mature pairs that reproduced this month
-                # history[-(lifespan + 1)]: rabbits born lifespan months ago, who die this month
-           
-        # Update for next iteration
-        prev_gen, current_gen = current_gen, next_gen
-        history.append(next_gen)
+        reproducing = 0
+        for i in range(max(1, month - lifespan), month - 1):
+            reproducing += history[i]
+        
+        history[month] = reproducing
+      
+    # Total rabbits alive after 'months' months = sum of rabbits still within lifespan
+    total_alive = sum(history[max(1, months - lifespan + 1):months + 1])
+    return total_alive
 
-    return current_gen
+print(rabbit_population_mortal(6,3))
+"""Output: 4"""
 
-    print(rabbit_population_mortal(6,3))
+
+"""Actual Dataset Problem"""
+print(rabbit_population_mortal(80,16))
+"""Output: 23105735806966033"""
