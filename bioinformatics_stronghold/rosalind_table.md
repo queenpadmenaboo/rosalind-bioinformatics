@@ -19,6 +19,7 @@
 | November 8, 2025 | A Brief Introduction to Graph Theory | Bioinformatics Stronghold | ✅ |
 | November 8, 2025 | Enumerating Gene Orders | Bioinformatics Stronghold | ✅ |
 | November 8, 2025 | Enumerating Oriented Gene Orderings | Bioinformatics Stronghold | ✅ |
+| November 10, 2025 | Mortal Fibonacci Rabbits | Bioinformatics Stronghold | ✅ |
 | October 15, 2025 | Installing Python | Python Village | ✅ |
 | October 15, 2025 | Variables and Some Arithmetic | Python Village | ✅ |
 | October 16, 2025 | Strings and Lists | Python Village | ✅ |
