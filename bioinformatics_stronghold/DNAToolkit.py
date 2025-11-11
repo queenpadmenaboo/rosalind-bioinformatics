@@ -200,3 +200,35 @@ def solve_splc(fasta_text):
     protein = translate_rna(rna)
 
     return protein
+
+
+def transition_transversion_ratio(fasta_text):
+    # Parse sequences and remove whitespace/newlines
+    sequences = [seq.replace('\n', '').strip() for seq in parse_fasta(fasta_text).values()]
+    s1, s2 = sequences[0], sequences[1]
+
+    # Define transitions
+    transitions = {('A', 'G'), ('G', 'A'), ('C', 'T'), ('T', 'C')}
+    # Define transversions
+    transversions = {
+        ('A', 'C'), ('A', 'T'), 
+        ('C', 'A'), ('C', 'G'), 
+        ('G', 'C'), ('G', 'T'), 
+        ('T', 'A'), ('T', 'G')
+    }
+    
+    transitions_count = 0
+    transversions_count = 0
+
+    # Compare psoitions
+    for base1, base2 in zip(s1, s2):
+        if base1 != base2:
+            if (base1, base2) in transitions:
+                transitions_count += 1
+            elif (base1, base2) in transversions:
+                transversions_count += 1 
+
+    if transversions_count == 0:
+            return 0.0
+        
+    return transitions_count / transversions_count
