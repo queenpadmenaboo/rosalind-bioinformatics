@@ -175,3 +175,28 @@ def prefix(seq, k):
 # Extracts the last k nucleotides from a DNA sequence
 def suffix(seq, k):
     return seq[-k:]
+
+# Solves RNA Splicing - removes introns, transribes DNA to RNA, and translates to protein
+def solve_splc(fasta_text):
+    # Parse all sequences from FASTA format
+    sequences = parse_fasta(fasta_text)
+    seq_list = list(sequences.values())
+
+    # First sequence is the gene, rest are introns to remove
+    gene = seq_list[0]
+    introns = seq_list[1:]
+
+    # Remove all introns from the gene
+    for intron in introns:
+        gene = gene.replace(intron, "")
+
+    # Validate the spliced gene sequence
+    gene = validateDNASeq(gene)
+
+    # Transcribe the DNA to RNA
+    rna = transcribeDNAtoRNA(gene)
+
+    # Translation RNA to protein string
+    protein = translate_rna(gene)
+
+    return protein
