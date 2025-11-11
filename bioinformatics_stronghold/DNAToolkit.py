@@ -148,7 +148,7 @@ def validateRNASeq(rna_seq):
 # Translate an RNA sequence into a protein string
 def translate_rna(rna_seq):
     protein = ""
-    for i in range(0, len(rna_seq), 3):
+    for i in range(0, len(rna_seq) - 2, 3):
         codon = rna_seq[i:i+3]
         amino_acid = rnacodon_table.get(codon, '')
         if amino_acid == 'Stop':
@@ -197,6 +197,6 @@ def solve_splc(fasta_text):
     rna = transcribeDNAtoRNA(gene)
 
     # Translation RNA to protein string
-    protein = translate_rna(gene)
+    protein = translate_rna(rna)
 
     return protein
