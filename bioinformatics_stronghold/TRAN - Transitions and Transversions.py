@@ -1,0 +1,27 @@
+"""
+Rosalind Problem: TRAN - Transitions and Transversions
+Problem URL: http://rosalind.info/problems/tran/
+Location: Bioinformatics Stronghold
+Author: Bunsree Patel
+Date: November 11, 2025
+"""
+
+"""
+'purine' - 'A', 'G'
+'pyrimidine' - 'C', 'T'
+'transitions' - substitutes one 'purine' for another - "A ↔ G" and one 'pyrimidine' for another - "C ↔ T"
+'transversions' - interchange of a purine for a pyrimidine base, or vice-versa
+    - require a more drastic change to the base's chemical structure
+    - across the entire genome, the ratio of transitions to transversions is on average about 2.
+        - in coding regions, transitions:transversions ratio is typically higher (often exceeding 3)
+            - ***GIVE REASONING DUE TO transition in coding regions being less likely to change the encoded amino acid; particularly when the substituted base is the third member of a codon**
+            - this kind of substitution, that does not affect organism's protein makeup is known as a 'silent substitution'
+            - ratio provides a quick and useful statistic for potentially identifying coding DNA.
+"""
+
+"""Sample Dataset Problem
+For DNA strings s₁ and s₂ having the same length, their transition/transversion ratio R(s₁,s₂) is the ratio of the total number of transitions to the total number of transversions, 
+where symbol substitutions are inferred from mismatched corresponding symbols as when calculating Hamming distance (see “Counting Point Mutations”).
+    
+    Given: Two DNA strings s₁ and s₂ of equal length (at most 1 kbp).
+    Return: Return the transition/transversion ration R(s₁,s₂)."""
