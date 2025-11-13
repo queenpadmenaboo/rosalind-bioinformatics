@@ -42,7 +42,7 @@ print(round(ratio, 11))
 """Output:
 1.21428571429"""
 
-"""Actual Dataset Problem:"""
+"""Actual Dataset Problem"""
 
 fasta_text = """
 >Rosalind_4818
