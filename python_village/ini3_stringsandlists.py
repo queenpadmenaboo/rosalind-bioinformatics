@@ -19,9 +19,9 @@ It is easy to change existing list items by reassigning them."""
 
 tea_party[1] = 'Cheshire Cat'
 print(tea_party)
-"""Output: ['March Hare', 'Cheshire Cat', 'Dormouse', 'Alice']. Hatter was replaced by Cheshire Cat.
-Use the append(): function to add items to the end of an existing list"""
+"""Output: ['March Hare', 'Cheshire Cat', 'Dormouse', 'Alice']. Hatter was replaced by Cheshire Cat."""
 
+# Use the append(): function to add items to the end of an existing list
 tea_party.append('Jabberwocky')
 print(tea_party)
 """Output: ['March Hare', 'Cheshire Cat', 'Dormouse', 'Alice', 'Jabberwocky']. Jabberwocky was added to the end of the list.
