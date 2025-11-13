@@ -38,3 +38,44 @@ print(adenine_count(dna_seq))
 dna_seq = "AAAA"
 print(adenine_count(dna_seq))
 """Output: 4"""
+
+
+# Write a function that returns True if a DNA sequence contains at least one 'G', otherwise return False.
+
+def contains_guanine(dna_seq):
+    for nuc in dna_seq:
+        if nuc == 'G':
+            return True
+    return False
+        
+dna_seq = "ATCG"
+print(contains_guanine(dna_seq))
+"""Output: True"""
+
+dna_seq = "CATTACAAT"
+print(contains_guanine(dna_seq))
+"""Output: False"""
+
+dna_seq = "AAAAAATTTTCCCCCCCCG"
+print(contains_guanine(dna_seq))
+"""Output: True"""
+
+
+
+def count_thymine(dna_seq):
+    count = 0
+    return dna_seq.count('T')
+
+dna_seq = "CTAGGGTTTTAAACCT"
+print(count_thymine(dna_seq))
+
+def count_nucleotides(dna_seq):
+    print(
+        "A:", dna_seq.count('A'),
+        "C:", dna_seq.count('C'),
+        "G:", dna_seq.count('G'),
+        "T:", dna_seq.count('T')
+    )
+
+dna_seq = "CTAGGGTTTTAAACCTAAAATTTTCCCCCCCCG"
+count_nucleotides(dna_seq)
