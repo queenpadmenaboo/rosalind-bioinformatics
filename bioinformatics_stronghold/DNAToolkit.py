@@ -220,7 +220,7 @@ def transition_transversion_ratio(fasta_text):
     transitions_count = 0
     transversions_count = 0
 
-    # Compare psoitions
+    # Compare positions
     for base1, base2 in zip(s1, s2):
         if base1 != base2:
             if (base1, base2) in transitions:
