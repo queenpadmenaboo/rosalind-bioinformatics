@@ -23,5 +23,27 @@ An online interface for DNA stats can be found at https://www.bioinformatics.org
     
     Note: You must provide your answer in the format shown in the sample output below."""
 
+
+dna_seq = "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGC"
 def nucleotide_count(dna_seq):
-    
+    TmpFreqDict = {'A': 0, 'C': 0, 'G': 0, 'T': 0}
+
+    for nuc in dna_seq:
+        if nuc in TmpFreqDict:
+            TmpFreqDict[nuc] += 1
+
+    return TmpFreqDict
+
+print(nucleotide_count(dna_seq))
+
+def nuc_count(dna_seq):
+    print(
+        "A:", dna_seq.count('A'),
+        "C:", dna_seq.count('C'),
+        "G:", dna_seq.count('G'),
+        "T:", dna_seq.count('T')
+    )
+
+dna_seq = "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGC"
+nuc_count(dna_seq)
+           
