@@ -2,7 +2,7 @@ import os       # Provides a way to interact with operating system. Makes script
 import sys      # Gives access to system-specific parameters and functions. Provides proper termination when error occurs.
 
 # Paths
-repo_root = r"C:\Users\bunsr\rosalind-bioinformatics"                   # Root of the repository
+repo_root = r"C:\Users\meeko\rosalind-bioinformatics"                   # Root of the repository
 stronghold_folder = os.path.join(repo_root, "bioinformatics_stronghold")
 table_file = os.path.join(stronghold_folder, "rosalind_table.md")       # Table source
 readme_file = os.path.join(repo_root, "README.md")                      # Output README at root level
