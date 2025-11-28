@@ -76,3 +76,5 @@ print(
     my_seq.count('G'),
     my_seq.count('T')
 )
+"""Output:
+8 7 8 9"""
