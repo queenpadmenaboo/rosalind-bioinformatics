@@ -2,6 +2,7 @@
 
 | Date | Problem | Location | Completed |
 |------|---------|----------|:---------:|
+| November 27, 2025 | GenBank Introduction | Bioinformatics Armory | ✅ |
 | November 27, 2025 | Introduction to the Bioinformatics Armory | Bioinformatics Armory | ✅ |
 | October 24, 2025 | Counting DNA Nucleotides | Bioinformatics Stronghold | ✅ |
 | October 25, 2025 | Complementing a Strand of DNA | Bioinformatics Stronghold | ✅ |
