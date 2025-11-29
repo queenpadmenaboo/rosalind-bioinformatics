@@ -107,7 +107,7 @@ A
 
 from Bio import Entrez, SeqIO
 
-"""Entrez.email = "bunsree@gmail.com"
+Entrez.email = "bunsree@gmail.com"
 # Fetch the sequence from NCBI
 handle = Entrez.efetch(
     db="nucleotide",
@@ -119,20 +119,22 @@ handle = Entrez.efetch(
 # Parse the FASTA record into a list
 records = list (SeqIO.parse(handle, "fasta"))
 
-# Print each record ID and its sequence length
-print("Sequence length:")
+# Print each record ID
 for record in records:
+    print("Sequence Length:", len(record.seq))
     print(record.format("fasta"))
 
 # Find the shortest string/sequence
 shortest = min(records, key=lambda r: len(r.seq))
 
 # Print label and the shortest sequence info in FASTA
-print("\nShortest sequence:")
-print(shortest.format("fasta"))"""
+print("\n*****Shortest sequence:******")
+print("Sequence length:", len(shortest.seq))
+print(shortest.format("fasta"))
 
 """Output:
 Shortest sequence:
+Sequence length: 771
 >JX469983.1 Zea mays subsp. mays clone UT3343 G2-like transcription factor mRNA, partial cds
 ATGATGTATCATGCGAAGAATTTTTCTGTGCCCTTTGCTCCGCAGAGGGCACAGGATAAT
 GAGCATGCAAGTAATATTGGAGGTATTGGTGGACCCAACATAAGCAACCCTGCTAATCCT
@@ -167,22 +169,22 @@ handle = Entrez.efetch(
 # Parse the FASTA record into a list
 records = list (SeqIO.parse(handle, "fasta"))
 
-# Print each record ID and its sequence length
-print("Sequence length:")
+# Print each record ID
 for record in records:
+    print("Sequence Length:", len(record.seq))
     print(record.format("fasta"))
 
 # Find the shortest string/sequence
 shortest = min(records, key=lambda r: len(r.seq))
 
 # Print label and the shortest sequence info in FASTA
-print("\nShortest sequence:")
-print("Length:", len(shortest.seq))
+print("\n*****Shortest sequence:*****")
+print("Sequence length:", len(shortest.seq))
 print(shortest.format("fasta"))
 
 """Output:
 Shortest sequence:
-Length: 621
+Sequence length: 621
 >JX308817.1 Medicago papillosa FRUITFULLb mRNA, partial cds
 AGGATTGAGAACAAGATCAATAGACAAGTCACTTTTTCACAGAGAAGGTCTGGTTTGTTG
 AAGAAAGCACAAGAGATCTCTGTGCTTTGTGATGCTGATGTTGCTCTCATTATTTCCTCT
