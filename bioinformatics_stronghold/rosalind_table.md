@@ -4,6 +4,7 @@
 |------|---------|----------|:---------:|
 | November 27, 2025 | GenBank Introduction | Bioinformatics Armory | ✅ |
 | November 27, 2025 | Introduction to the Bioinformatics Armory | Bioinformatics Armory | ✅ |
+| November 28, 2025 | Data Formats | Bioinformatics Armory | ✅ |
 | November 28, 2025 | New Motif Discovery | Bioinformatics Armory | ✅ |
 | October 24, 2025 | Counting DNA Nucleotides | Bioinformatics Stronghold | ✅ |
 | October 25, 2025 | Complementing a Strand of DNA | Bioinformatics Stronghold | ✅ |
