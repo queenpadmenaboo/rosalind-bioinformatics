@@ -51,7 +51,7 @@ Links:
 
 """Sample Dataset"""
 
-# Create fastq file
+# Create FASTQ file
 fastq_content = """@SEQ_ID
 GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT
 +
