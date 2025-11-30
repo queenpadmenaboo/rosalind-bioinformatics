@@ -6,6 +6,7 @@
 | November 27, 2025 | Introduction to the Bioinformatics Armory | Bioinformatics Armory | ✅ |
 | November 28, 2025 | Data Formats | Bioinformatics Armory | ✅ |
 | November 28, 2025 | New Motif Discovery | Bioinformatics Armory | ✅ |
+| November 29, 2025 | FASTQ format introduction | Bioinformatics Armory | ✅ |
 | October 24, 2025 | Counting DNA Nucleotides | Bioinformatics Stronghold | ✅ |
 | October 25, 2025 | Complementing a Strand of DNA | Bioinformatics Stronghold | ✅ |
 | October 25, 2025 | Transcribing DNA into RNA | Bioinformatics Stronghold | ✅ |
