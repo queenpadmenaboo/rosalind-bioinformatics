@@ -641,7 +641,8 @@ CATTTTGAGCATCCCGCCATGAAACGAGCACCATCAGCCCGACTGCGCTACTTATAGCAGTTTTCTTTAGAGAACGTGGC
 >Rosalind_0085
 GTTTGTAAAACGGACAGATAGTCGAAGGGAGTGAGCCATCATAAGAGGGTGTTAGTTTACCGGCACATGTTAAACGCTTGATTGTTGCAGTCCGTAGTTGCAGAGCGAATTTTCAACTAAGTCGCAAAACCCGGATGGTTTGCAGGGAGACCTGAACCCTCAGTTCGCTTGCTGGCGTG
 """
-# Best Method using Bio.SeqIO module
-from Bio import SeqIO
+"""# Best Method using Bio.SeqIO module
+Created test.fastq file and pasted Rosalind dataset, also wrote the code below in 'convert.py' file
 
-SeqIO.convert('test.fastq', 'fastq', 'test.fasta', 'fasta')
+from Bio import SeqIO
+SeqIO.convert('test.fastq', 'fastq', 'test.fasta', 'fasta')"""
