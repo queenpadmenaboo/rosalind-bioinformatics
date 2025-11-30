@@ -645,4 +645,7 @@ GTTTGTAAAACGGACAGATAGTCGAAGGGAGTGAGCCATCATAAGAGGGTGTTAGTTTACCGGCACATGTTAAACGCTTG
 Created test.fastq file and pasted Rosalind dataset, also wrote the code below in 'convert.py' file
 
 from Bio import SeqIO
-SeqIO.convert('test.fastq', 'fastq', 'test.fasta', 'fasta')"""
+SeqIO.convert('test.fastq', 'fastq', 'test.fasta', 'fasta')
+
+***BioPython parses and validates each record, so it guarantees the output FASTA is correct. 
+The manual approach with strip and write code does not check for valid sequences or quality scores."""
