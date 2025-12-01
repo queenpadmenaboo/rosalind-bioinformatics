@@ -7,6 +7,7 @@
 | November 28, 2025 | Data Formats | Bioinformatics Armory | ✅ |
 | November 28, 2025 | New Motif Discovery | Bioinformatics Armory | ✅ |
 | November 29, 2025 | FASTQ format introduction | Bioinformatics Armory | ✅ |
+| November 30, 2025 | Protein Translation | Bioinformatics Armory | ✅ |
 | October 24, 2025 | Counting DNA Nucleotides | Bioinformatics Stronghold | ✅ |
 | October 25, 2025 | Complementing a Strand of DNA | Bioinformatics Stronghold | ✅ |
 | October 25, 2025 | Transcribing DNA into RNA | Bioinformatics Stronghold | ✅ |
@@ -31,3 +32,4 @@
 | October 15, 2025 | Variables and Some Arithmetic | Python Village | ✅ |
 | October 16, 2025 | Strings and Lists | Python Village | ✅ |
 | October 20, 2025 | Conditions and Loops | Python Village | ✅ |
+| Unknown | convert. | Unknown | ✅ |
