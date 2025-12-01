@@ -26,7 +26,8 @@ for folder in folders_to_scan:
     for file_name in os.listdir(folder):
         if file_name.endswith(".py") and not file_name.startswith("__") and file_name not in [
             "generate_table.py", "main.py", "update_readme.py",
-            "DNAToolkit.py", "FibonacciNumbers.py", "ProteinToolkit.py", "practice.py"
+            "DNAToolkit.py", "FibonacciNumbers.py", "ProteinToolkit.py", "practice.py",
+            "convert.py"
             ]:
             file_path = os.path.join(folder, file_name)
                 

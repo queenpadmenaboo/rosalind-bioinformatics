@@ -32,4 +32,3 @@
 | October 15, 2025 | Variables and Some Arithmetic | Python Village | ✅ |
 | October 16, 2025 | Strings and Lists | Python Village | ✅ |
 | October 20, 2025 | Conditions and Loops | Python Village | ✅ |
-| Unknown | convert. | Unknown | ✅ |
