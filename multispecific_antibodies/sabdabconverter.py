@@ -18,38 +18,38 @@ while empty_count < 2:
 
 text = '\n'.join(lines)
 
-# Parse - handle case where labels and values are concatenated
+# Parse - handle both numbered and unnumbered formats
 import re
 
 therapeutic = ""
 targets = []
 current_target = None
 
-# Split on known keywords
-parts = re.split(r'(Therapeutic|Target \d+|Heavy Chain \d+|Light Chain \d+)', text)
+# Split on known keywords (with or without numbers)
+parts = re.split(r'(Therapeutic|Target\s*\d*|Heavy Chain\s*\d*|Light Chain\s*\d*)', text, flags=re.IGNORECASE)
 
 for i in range(len(parts)):
     part = parts[i].strip()
     
-    if part == 'Therapeutic':
+    if re.match(r'Therapeutic', part, re.IGNORECASE):
         if i+1 < len(parts):
-            therapeutic = re.split(r'Target \d+', parts[i+1])[0].strip()
+            therapeutic = re.split(r'Target', parts[i+1], flags=re.IGNORECASE)[0].strip()
     
-    elif re.match(r'Target \d+', part):
+    elif re.match(r'Target', part, re.IGNORECASE):
         current_target = {'name': '', 'hc': '', 'lc': ''}
         targets.append(current_target)
         if i+1 < len(parts):
             # Extract target name (everything before "Heavy Chain")
-            target_text = re.split(r'Heavy Chain \d+', parts[i+1])[0].strip()
+            target_text = re.split(r'Heavy Chain', parts[i+1], flags=re.IGNORECASE)[0].strip()
             current_target['name'] = target_text.replace('/', '-').replace(' ', '-')
     
-    elif re.match(r'Heavy Chain \d+', part) and current_target:
+    elif re.match(r'Heavy Chain', part, re.IGNORECASE) and current_target:
         if i+1 < len(parts):
             # Extract sequence (everything before next keyword or structure info)
-            seq_text = parts[i+1].split('Light Chain')[0].split('100%')[0].strip()
+            seq_text = re.split(r'Light Chain', parts[i+1], flags=re.IGNORECASE)[0].split('100%')[0].strip()
             current_target['hc'] = seq_text
     
-    elif re.match(r'Light Chain \d+', part) and current_target:
+    elif re.match(r'Light Chain', part, re.IGNORECASE) and current_target:
         if i+1 < len(parts):
             # Extract sequence (everything before structure info)
             seq_text = parts[i+1].split('100%')[0].strip()
