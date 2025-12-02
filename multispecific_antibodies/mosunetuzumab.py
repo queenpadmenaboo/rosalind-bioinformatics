@@ -1,4 +1,4 @@
-"""
+mosunetuzumab = """
 >Mosunetuzumab|||Mosunetuzumab_INN light;Mosunetuzumab;IGKV4;Thera-SAbDab
 DIVMTQSPDSLAVSLGERATINCKSSQSLLNSRTRKNYLAWYQQKPGQPPKLLIYWASTRESGVPDRFSGSGSGTDFTLTISSLQAEDVAVYYCTQSFILRTFGQGTKVEIK
 >Mosunetuzumab|||Mosunetuzumab_INN heavy;Mosunetuzumab;IGHV1;Thera-SAbDab

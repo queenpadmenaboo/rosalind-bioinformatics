@@ -1,4 +1,4 @@
-"""
+blinatumomab = """
 >Blinatumomab|||Blinatumomab_INN light;Blinatumomab;IGKV7;Thera-SAbDab
 DIQLTQSPASLAVSLGQRATISCKASQSVDYDGDSYLNWYQQIPGQPPKLLIYDASNLVSGIPPRFSGSGSGTDFTLNIHPVEKVDAATYHCQQSTEDPWTFGGGTKLEIK
 >Blinatumomab|||Blinatumomab_INN heavy;Blinatumomab;IGHV1;Thera-SAbDab
