@@ -3,9 +3,12 @@
 A collection of therapeutic multispecific and monospecific antibody sequences in FASTA format.
 
 ## Data Source
-Antibody sequences obtained from Thera-SAbDab (https://opig.stats.ox.ac.uk/webapps/sabdab-sabpred/therasabdab/search/)
+Antibody sequences obtained from [Thera-SAbDab](https://opig.stats.ox.ac.uk/webapps/sabdab-sabpred/therasabdab/search/)
 
-Citation: Raybould et al. (2020) Thera-SAbDab: the Therapeutic Structural Antibody Database. Nucleic Acids Research.
+**Citations:**
+- Schneider, C., Raybould, M.I.J., Deane, C.M. (2022) SAbDab in the Age of Biotherapeutics: Updates including SAbDab-Nano, the Nanobody Structure Tracker. *Nucleic Acids Res.* 50(D1):D1368-D1372
+- Raybould, M.I.J., Marks, C. et al (2019) Thera-SAbDab: the Therapeutic Structural Antibody Database. *Nucleic Acids Res.* gkz827
+- Dunbar, J., Krawczyk, K. et al (2014) SAbDab: the Structural Antibody Database. *Nucleic Acids Res.* 42:D1140-D1146
 
 ## Repository Contents
 - Individual `.py` files containing FASTA sequences for each therapeutic antibody
