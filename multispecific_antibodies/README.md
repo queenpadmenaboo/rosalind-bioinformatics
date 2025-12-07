@@ -38,4 +38,4 @@ These sequences are from publicly available therapeutic antibodies as curated by
 
 ## Statistics
 - Data last updated: December 2025
-- Total antibodies: 231
+- Total antibodies: 308
