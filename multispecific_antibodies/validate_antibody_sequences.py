@@ -5,10 +5,10 @@ import os
 # CONFIGURATION
 # ============================
 
-# Path to your Thera-SAbDab CSV file
+# Thera-SAbDab CSV file path
 THERA_CSV_FILE = r"C:\Users\bunsr\TheraSAbDab_SeqStruc_ 07Dec2025.csv"
 
-# Folder where the individual FASTA-style .py files will be saved
+# Folder where the individual FASTA-style .py files are saved
 OUTPUT_FOLDER = r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies\thera_fastas"
 
 # Valid amino acids for antibody sequences
