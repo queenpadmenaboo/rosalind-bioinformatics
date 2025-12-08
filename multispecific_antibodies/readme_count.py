@@ -18,7 +18,7 @@ def update_readme_count():
     # Count .py files (excluding sabdabconverter.py and this script)
     py_files = [f for f in os.listdir('.') 
                 if f.endswith('.py') 
-                and f not in ['sabdabconverter.py', 'readme_count.py', 'selenium_antibody_scraper.py', 'thera_sabdab_scraper.py']]
+                and f not in ['sabdabconverter.py', 'readme_count.py', 'selenium_antibody_scraper.py', 'thera_sabdab_scraper.py', 'validate_antibody_sequences.py']]
     
     print(f"Antibody .py files: {py_files}")
     count = len(py_files)
