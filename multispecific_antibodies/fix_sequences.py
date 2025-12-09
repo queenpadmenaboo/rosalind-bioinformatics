@@ -19,7 +19,7 @@ from typing import Dict
 # CONFIGURATION
 # ============================
 
-CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv")
+CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_07Dec2025.csv")
 ANTIBODY_FOLDER = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
 
 CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
@@ -113,29 +113,109 @@ def fix_antibody_file(filepath: Path, csv_data: Dict) -> bool:
     return True
 
 
+def parse_py_file(filepath: Path) -> Dict[str, str]:
+    # Parses antibody .py file and extracts FASTA sequences
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    sequences = {}
+    current_header = None
+    current_seq = []
+    
+    for line in content.split('\n'):
+        line = line.strip()
+        if line.startswith('>'):
+            if current_header:
+                seq = ''.join(current_seq)
+                sequences[current_header] = 'NA' if seq.lower() in ('na', 'n/a', '') else seq
+            current_header = line[1:]
+            current_seq = []
+        elif line and not any(line.startswith(c) for c in ('"""', '=', '#', 'import', 'from')):
+            if line.lower() not in ('na', 'n/a'):
+                current_seq.append(line)
+    
+    if current_header:
+        seq = ''.join(current_seq)
+        sequences[current_header] = 'NA' if seq.lower() in ('na', 'n/a', '') else seq
+    
+    return sequences
+
+
+def find_mismatches(antibody_name: str, filepath: Path, csv_data: Dict) -> list:
+    # Compares .py sequences to CSV and returns list of mismatches
+    try:
+        py_sequences = parse_py_file(filepath)
+    except:
+        return ['parse_error']
+    
+    mismatches = []
+    for header, seq in py_sequences.items():
+        if seq == 'NA':
+            continue
+        header_lower = header.lower()
+        
+        csv_seq = None
+        if 'heavy' in header_lower:
+            if '_2' in header or 'chain_2' in header_lower:
+                csv_seq = csv_data['heavy2']
+            else:
+                csv_seq = csv_data['heavy1']
+        elif 'light' in header_lower:
+            if '_2' in header or 'chain_2' in header_lower:
+                csv_seq = csv_data['light2']
+            else:
+                csv_seq = csv_data['light1']
+        
+        if csv_seq and seq != csv_seq:
+            mismatches.append(header)
+    
+    return mismatches
+
+
 def main():
     print("=" * 70)
     print("FIX ANTIBODY SEQUENCES")
     print("=" * 70)
     
-    # List of antibodies to fix (from validation report)
-    antibodies_to_fix = [
-        'belimumab', 'obinutuzumab', 'trastuzumab', 'acasunlimab',
-        'amivantamab', 'amostomig', 'arumakimig', 'besufetamig',
-        'cevostamab', 'ciduvectamig', 'davutamig', 'denecimig',
-        'dilpacimab', 'elranatamab', 'etentamig', 'etuptamig',
-        'fazpilodemab', 'gremubamab', 'ivicentamab', 'linclatamig',
-        'linvoseltamab', 'marlotamig', 'navicixizumab', 'blinatumomab'
-    ]
-    
-    print(f"Antibodies to fix: {len(antibodies_to_fix)}\n")
-    
     # Load CSV data
     csv_antibodies = load_csv_data(CSV_PATH)
     print(f"Loaded {len(csv_antibodies)} antibodies from CSV\n")
     
+    # Find antibodies with mismatches
+    print("Scanning for sequence mismatches...")
+    antibodies_to_fix = []
+    
+    for folder in CATEGORY_FOLDERS:
+        folder_path = ANTIBODY_FOLDER / folder
+        if folder_path.exists():
+            for filepath in folder_path.glob('*.py'):
+                antibody_name = filepath.stem
+                if antibody_name in csv_antibodies:
+                    mismatches = find_mismatches(antibody_name, filepath, csv_antibodies[antibody_name])
+                    if mismatches:
+                        antibodies_to_fix.append(antibody_name)
+    
+    # Check root folder too
+    for filepath in ANTIBODY_FOLDER.glob('*.py'):
+        if filepath.is_file():
+            antibody_name = filepath.stem
+            if antibody_name in csv_antibodies:
+                mismatches = find_mismatches(antibody_name, filepath, csv_antibodies[antibody_name])
+                if mismatches:
+                    antibodies_to_fix.append(antibody_name)
+    
+    print(f"\nAntibodies with mismatches: {len(antibodies_to_fix)}")
+    
+    if len(antibodies_to_fix) == 0:
+        print("\nNo mismatches found. All sequences match CSV.")
+        print("=" * 70)
+        return
+    
+    for name in antibodies_to_fix:
+        print(f"  - {name}")
+    
     # Confirm
-    print("This will:")
+    print("\nThis will:")
     print("  1. Create .bak backup of each file")
     print("  2. Replace sequences with CSV sequences")
     print()
