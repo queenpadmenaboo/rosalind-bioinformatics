@@ -1,112 +1,100 @@
+"""
+Categorize antibody Python files into 4 subdirectories based on format.
+"""
+
 import pandas as pd
-import os
 import shutil
 from collections import defaultdict
 from pathlib import Path
+from typing import Dict, List, Tuple, Optional
 
-# 4-Category mapping based on your data
-# ============================================================================
-# EDIT 1: Added keywords to catch unusual bispecific formats
-# ============================================================================
-CATEGORY_MAPPING = {
-    'Whole_mAb': [
-        'whole mab', 'whole ab'
-    ],
+# ============================
+# CONFIGURATION
+# ============================
+
+CSV_PATH = Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv")
+ANTIBODY_FOLDER = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
+
+# Keywords for each category
+CATEGORY_KEYWORDS = {
+    'Whole_mAb': ['whole mab', 'whole ab'],
     'Bispecific_mAb': [
-        'bispecific mixed mab', 'bispecific mab', 'bispecific igg',
-        'bispecific dual variable domain ig', 'bispecific mixed format',
-        'bispecific (h-gamma1',           # ← ADDED: bexatamig
-        'bispecific (vl-vh',              # ← ADDED: other unusual formats
-        'bispecific (l-kappa-h-gamma1',   # ← ADDED: fanastomig
-        'bispecific (half'                # ← ADDED: rezetamig
+        'bispecific mab', 'bispecific mixed mab', 'bispecific igg',
+        'bispecific dual variable domain', 'bispecific mixed format',
+        'bispecific (h-gamma1', 'bispecific (vl-vh',
+        'bispecific (l-kappa-h-gamma1', 'bispecific (half'
     ],
     'Bispecific_scFv': [
         'bispecific t-cell engager', 'bite', 'tce',
         'bispecific single domains', 'bispecific mixed domains',
         'single domain variable fragment'
-    ],
-    'Other_Formats': [
-        'fab', 'nanobody', 'fv fusion',
-        'bispecific (vh-vk'  # ← ADDED: acimtamig (VH-VK homodimer)
     ]
 }
 
-def get_category(format_string):
-    """Get category from format string"""
+EXCLUDE_FILES = {
+    '__init__.py', 'categorize_antibody_format.py', 'categorize_simple.py',
+    'therasabdab_analyze_formats.py', 'validate_antibody_sequences.py',
+    'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
+    'thera_sabdab_scraper.py'
+}
+
+# ============================
+# FUNCTIONS
+# ============================
+
+def get_category(format_string: Optional[str]) -> str:
+    """
+    If Whole_mAb -> Whole_mAb
+    If Bispecific_mAb -> Bispecific_mAb
+    If Bispecific_scFv -> Bispecific_scFv
+    Everything else -> Other_Formats
+    """
     if not format_string or pd.isna(format_string):
-        return 'Unclassified'
+        return 'Other_Formats'
     
     format_lower = format_string.lower()
     
-    for category, keywords in CATEGORY_MAPPING.items():
-        for keyword in keywords:
-            if keyword.lower() in format_lower:
-                return category
+    for keyword in CATEGORY_KEYWORDS['Whole_mAb']:
+        if keyword in format_lower:
+            return 'Whole_mAb'
     
-    return 'Unclassified'
+    for keyword in CATEGORY_KEYWORDS['Bispecific_mAb']:
+        if keyword in format_lower:
+            return 'Bispecific_mAb'
+    
+    for keyword in CATEGORY_KEYWORDS['Bispecific_scFv']:
+        if keyword in format_lower:
+            return 'Bispecific_scFv'
+    
+    return 'Other_Formats'
 
-def main():
-    csv_path = Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv")
-    py_folder = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
-    
-    print("=" * 80)
-    print("CATEGORIZING ANTIBODY FILES INTO 4 SUBFOLDERS")
-    print("=" * 80)
-    print(f"CSV: {csv_path}")
-    print(f"Folder: {py_folder}")
-    print()
-    
-    # Load and validate CSV
+
+def load_csv(csv_path: Path) -> Optional[pd.DataFrame]:
     try:
         df = pd.read_csv(csv_path)
+        if 'Therapeutic' not in df.columns or 'Format' not in df.columns:
+            print("ERROR: CSV missing Therapeutic or Format columns")
+            return None
         print(f"Loaded {len(df)} entries from CSV")
+        return df
     except Exception as e:
         print(f"ERROR reading CSV: {e}")
-        return
-    
-    # ============================================================================
-    # EDIT 2: Changed 'Antibody' to 'Therapeutic' (column name fix)
-    # ============================================================================
-    # Validate required columns - FIXED: Use 'Therapeutic' instead of 'Antibody'
-    required_cols = ['Therapeutic', 'Format']
-    if not all(col in df.columns for col in required_cols):
-        print(f"ERROR: CSV missing required columns: {required_cols}")
-        print(f"Available columns: {list(df.columns)}")
-        return
-    
-    # Get all Python files
-    try:
-        all_files = os.listdir(py_folder)
-        print(f"Total files in folder: {len(all_files)}")
-    except Exception as e:
-        print(f"ERROR reading folder: {e}")
-        return
-    
-    # Filter for .py files (exclude utility scripts)
-    exclude_files = {'__init__.py', 'categorize_antibody_format.py', 'categorize_simple.py', 
-                     'therasabdab_analyze_formats.py'}
-    py_files = [f for f in all_files if f.endswith('.py') and f not in exclude_files 
-                and not os.path.isdir(os.path.join(py_folder, f))]
-    
-    print(f"Found {len(py_files)} antibody .py files to categorize")
+        return None
+
+
+def get_antibody_files(folder: Path) -> List[str]:
+    py_files = [f.name for f in folder.glob('*.py') if f.is_file() and f.name not in EXCLUDE_FILES]
+    print(f"Found {len(py_files)} antibody files in root folder")
     if py_files:
-        print(f"Sample: {py_files[:3]}")
-    print()
-    
-    if len(py_files) == 0:
-        print("WARNING: No antibody .py files found!")
-        return
-    
-    # Categorize files
+        print(f"  Files: {', '.join(py_files)}")
+    return py_files
+
+
+def categorize_files(py_files: List[str], df: pd.DataFrame) -> Dict[str, List[Tuple[str, str, str]]]:
     results = defaultdict(list)
     
     for py_file in py_files:
         name = py_file.replace('.py', '')
-        
-        # ============================================================================
-        # EDIT 3: Changed df['Antibody'] to df['Therapeutic'] (column name fix)
-        # ============================================================================
-        # Find in CSV (case-insensitive, with whitespace handling) - FIXED: Use 'Therapeutic'
         match = df[df['Therapeutic'].str.lower().str.strip() == name.lower().strip()]
         
         if not match.empty:
@@ -114,72 +102,82 @@ def main():
             category = get_category(format_type)
             results[category].append((name, format_type, py_file))
         else:
-            results['Unclassified'].append((name, 'N/A (not in CSV)', py_file))
+            results['NOT_IN_CSV'].append((name, 'Not in CSV', py_file))
     
-    # Print categorization results
-    print("=" * 80)
+    return dict(results)
+
+
+def print_results(results: Dict[str, List[Tuple[str, str, str]]]):
+    print("\n" + "=" * 70)
     print("CATEGORIZATION RESULTS")
-    print("=" * 80)
+    print("=" * 70)
     
-    categories_order = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats', 'Unclassified']
-    
-    for category in categories_order:
+    for category in ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']:
         if category in results:
-            count = len(results[category])
-            print(f"\n{category}: {count} files")
-            for name, fmt, _ in sorted(results[category])[:3]:
-                print(f"  • {name}")
-                if fmt != 'N/A (not in CSV)':
-                    print(f"    Format: {fmt}")
-            if count > 3:
-                print(f"  ... and {count - 3} more")
+            items = results[category]
+            print(f"\n{category}: {len(items)} files")
+            for name, fmt, _ in sorted(items):
+                print(f"  - {name}: {fmt}")
     
-    # Confirmation before organizing
-    print("\n" + "=" * 80)
-    print("READY TO ORGANIZE")
-    print("=" * 80)
-    print("\nThis will create 4 folders and move files:")
-    for cat in ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']:
-        if cat in results:
-            print(f"  • {cat}/ ({len(results[cat])} files)")
+    if 'NOT_IN_CSV' in results and results['NOT_IN_CSV']:
+        print(f"\nNOT IN CSV (will not be moved): {len(results['NOT_IN_CSV'])} files")
+        for name, _, _ in results['NOT_IN_CSV']:
+            print(f"  - {name}")
+
+
+def organize_files(py_folder: Path, results: Dict[str, List[Tuple[str, str, str]]]):
+    print("\n" + "=" * 70)
+    print("MOVING FILES")
+    print("=" * 70)
     
-    response = input("\nContinue? (yes/no): ").strip().lower()
+    for category in ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']:
+        if category not in results:
+            continue
+        
+        category_folder = py_folder / category
+        category_folder.mkdir(parents=True, exist_ok=True)
+        
+        for name, fmt, py_file in results[category]:
+            src = py_folder / py_file
+            dst = category_folder / py_file
+            try:
+                shutil.move(str(src), str(dst))
+                print(f"  Moved {py_file} -> {category}/")
+            except Exception as e:
+                print(f"  ERROR moving {py_file}: {e}")
+
+
+def main():
+    print("=" * 70)
+    print("ANTIBODY FILE CATEGORIZATION")
+    print("=" * 70)
+    print(f"CSV: {CSV_PATH.name}")
+    print(f"Folder: {ANTIBODY_FOLDER.name}\n")
     
+    df = load_csv(CSV_PATH)
+    if df is None:
+        return
+    
+    py_files = get_antibody_files(ANTIBODY_FOLDER)
+    if not py_files:
+        print("\nNo files to categorize in root folder.")
+        return
+    
+    results = categorize_files(py_files, df)
+    print_results(results)
+    
+    print("\n" + "=" * 70)
+    response = input("Proceed with moving files? (yes/no): ").strip().lower()
     if response != 'yes':
         print("Cancelled.")
         return
     
-    # Create folders and move files
-    print("\n" + "=" * 80)
-    print("ORGANIZING FILES")
-    print("=" * 80)
+    organize_files(ANTIBODY_FOLDER, results)
     
-    for category in ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']:
-        category_folder = py_folder / category
-        
-        if not category_folder.exists():
-            category_folder.mkdir(parents=True)
-            print(f"Created: {category}/")
-        
-        if category in results:
-            for name, fmt, py_file in results[category]:
-                src = py_folder / py_file
-                dst = category_folder / py_file
-                try:
-                    shutil.move(str(src), str(dst))
-                except Exception as e:
-                    print(f"ERROR moving {py_file}: {e}")
-            print(f"✓ Moved {len(results[category])} files to {category}/")
-    
-    # Handle unclassified files
-    if 'Unclassified' in results and results['Unclassified']:
-        print(f"\n⚠ {len(results['Unclassified'])} files could not be classified:")
-        for name, fmt, _ in results['Unclassified']:
-            print(f"  • {name}")
-    
-    print("\n" + "=" * 80)
-    print("Done!")
-    print("=" * 80)
+    print("\n" + "=" * 70)
+    print("DONE")
+    print("=" * 70)
+
 
 if __name__ == "__main__":
     main()
