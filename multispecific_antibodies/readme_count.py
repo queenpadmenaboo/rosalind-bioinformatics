@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime
+from collections import defaultdict
 
 def update_readme_count():
     # ------------------------------------------------
@@ -37,7 +38,8 @@ def update_readme_count():
         "validation_report.csv"
     }
 
-    antibody_files = []
+    # Track files by folder
+    folder_counts = defaultdict(list)
 
     # ------------------------------------------------
     # Walk only the defined antibody folders
@@ -52,14 +54,25 @@ def update_readme_count():
                 antibody_files.append(os.path.join(folder_path, filename))
 
     # ------------------------------------------------
-    # Display summary
+    # Display breakdown by folder
     # ------------------------------------------------
-    print("\nDetected antibody .py files:")
-    for path in antibody_files:
-        print(" -", path)
-
-    total = len(antibody_files)
-    print(f"\nTotal antibodies counted: {total}")
+    print("\n" + "=" * 60)
+    print("ANTIBODY FILES BY FOLDER")
+    print("=" * 60)
+    
+    total = 0
+    for folder in sorted(folder_counts.keys()):
+        count = len(folder_counts[folder])
+        total += count
+        print(f"\n{folder}: {count} files")
+        for fname in sorted(folder_counts[folder])[:3]:
+            print(f"  • {fname}")
+        if count > 3:
+            print(f"  ... and {count - 3} more")
+    
+    print("\n" + "=" * 60)
+    print(f"TOTAL ANTIBODIES: {total}")
+    print("=" * 60)
 
     # ------------------------------------------------
     # Update README.md
@@ -84,7 +97,7 @@ def update_readme_count():
     with open(readme_path, "w", encoding="utf-8") as f:
         f.write(updated)
 
-    print("\nREADME.md updated successfully!")
+    print("\n✓ README.md updated successfully!")
     print(f"New total: {total}")
     print(f"Updated date: {current_date}")
     print("--------------------------------------------------")
