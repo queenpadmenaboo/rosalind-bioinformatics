@@ -19,7 +19,7 @@ from typing import Dict
 # CONFIGURATION
 # ============================
 
-CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_07Dec2025.csv")
+CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv")
 ANTIBODY_FOLDER = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
 
 CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
