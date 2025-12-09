@@ -41,8 +41,8 @@ from dataclasses import dataclass
 # CONFIGURATION
 # ============================
 
-CSV_PATH = Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv")
-ANTIBODY_FOLDER = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
+CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv")
+ANTIBODY_FOLDER = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
 
 VALID_AA: Set[str] = set("ACDEFGHIKLMNPQRSTVWY")
 

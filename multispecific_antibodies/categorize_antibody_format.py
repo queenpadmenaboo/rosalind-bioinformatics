@@ -47,8 +47,8 @@ from typing import Dict, List, Tuple, Optional
 # CONFIGURATION
 # ============================
 
-CSV_PATH = Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv")
-ANTIBODY_FOLDER = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
+CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv")
+ANTIBODY_FOLDER = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
 
 CATEGORY_KEYWORDS = {
     'Whole_mAb': ['whole mab', 'whole ab'],
