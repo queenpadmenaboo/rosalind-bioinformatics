@@ -1,5 +1,40 @@
 """
 Categorize antibody Python files into 4 subdirectories based on format.
+
+FOLDER STRUCTURE:
+    multispecific_antibodies/
+    ├── Bispecific_mAb/
+    ├── Bispecific_scFv/
+    ├── Other_Formats/
+    ├── Whole_mAb/
+    ├── calculate_features.py
+    ├── categorize_antibody_format.py
+    ├── readme_count.py
+    ├── README.md
+    ├── sabdabconverter.py
+    ├── selenium_antibody_scraper.py
+    ├── thera_sabdab_scraper.py
+    ├── validate_antibody_sequences.py
+    └── validation_report.csv
+
+PURPOSE:
+    - Reads format from TheraSAbDab CSV for each antibody file in root folder
+    - Categorizes into: Whole_mAb, Bispecific_mAb, Bispecific_scFv, or Other_Formats
+    - If not in CSV, file is flagged and NOT moved
+    - Moves files to appropriate subfolder after confirmation
+
+CATEGORY LOGIC:
+    - Whole_mAb: format contains "whole mab" or "whole ab"
+    - Bispecific_mAb: format contains "bispecific mab", "bispecific igg", etc.
+    - Bispecific_scFv: format contains "t-cell engager", "bite", "scfv", etc.
+    - Other_Formats: everything else (trispecifics, tetraspecifics, nanobodies, fabs)
+
+OUTPUT:
+    - Console report showing categorization
+    - Files moved to subfolders after user confirms
+
+USAGE:
+    python categorize_antibody_format.py
 """
 
 import pandas as pd
@@ -15,7 +50,6 @@ from typing import Dict, List, Tuple, Optional
 CSV_PATH = Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv")
 ANTIBODY_FOLDER = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
 
-# Keywords for each category
 CATEGORY_KEYWORDS = {
     'Whole_mAb': ['whole mab', 'whole ab'],
     'Bispecific_mAb': [
@@ -35,7 +69,7 @@ EXCLUDE_FILES = {
     '__init__.py', 'categorize_antibody_format.py', 'categorize_simple.py',
     'therasabdab_analyze_formats.py', 'validate_antibody_sequences.py',
     'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
-    'thera_sabdab_scraper.py'
+    'thera_sabdab_scraper.py', 'calculate_features.py'
 }
 
 # ============================
@@ -43,12 +77,6 @@ EXCLUDE_FILES = {
 # ============================
 
 def get_category(format_string: Optional[str]) -> str:
-    """
-    If Whole_mAb -> Whole_mAb
-    If Bispecific_mAb -> Bispecific_mAb
-    If Bispecific_scFv -> Bispecific_scFv
-    Everything else -> Other_Formats
-    """
     if not format_string or pd.isna(format_string):
         return 'Other_Formats'
     
@@ -165,6 +193,15 @@ def main():
     
     results = categorize_files(py_files, df)
     print_results(results)
+    
+    movable = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
+    files_to_move = sum(len(results.get(cat, [])) for cat in movable)
+    
+    if files_to_move == 0:
+        print("\n" + "=" * 70)
+        print("No files to move.")
+        print("=" * 70)
+        return
     
     print("\n" + "=" * 70)
     response = input("Proceed with moving files? (yes/no): ").strip().lower()

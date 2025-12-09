@@ -1,5 +1,35 @@
 """
 Validates antibody Python files against TheraSAbDab CSV database.
+
+FOLDER STRUCTURE:
+    multispecific_antibodies/
+    ├── Bispecific_mAb/
+    ├── Bispecific_scFv/
+    ├── Other_Formats/
+    ├── Whole_mAb/
+    ├── calculate_features.py
+    ├── categorize_antibody_format.py
+    ├── readme_count.py
+    ├── README.md
+    ├── sabdabconverter.py
+    ├── selenium_antibody_scraper.py
+    ├── thera_sabdab_scraper.py
+    ├── validate_antibody_sequences.py
+    └── validation_report.csv
+
+PURPOSE:
+    - Scans root folder + all 4 subfolders for .py files
+    - Checks if each antibody exists in CSV
+    - Validates sequences contain only valid amino acids (ACDEFGHIKLMNPQRSTVWY)
+    - Counts chains per antibody
+    - Counts files in each folder
+
+OUTPUT:
+    - Console report (matched, not in CSV, invalid)
+    - validation_report.csv in multispecific_antibodies folder
+
+USAGE:
+    python validate_antibody_sequences.py
 """
 
 import csv
@@ -26,7 +56,8 @@ EXCLUDE_FILES = {
     'validate_antibody_sequences.py',
     'categorize_antibody_format.py',
     'categorize_simple.py',
-    'therasabdab_analyze_formats.py'
+    'therasabdab_analyze_formats.py',
+    'calculate_features.py'
 }
 
 # ============================
