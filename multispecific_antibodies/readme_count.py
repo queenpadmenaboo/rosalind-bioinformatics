@@ -7,12 +7,22 @@ def update_readme_count():
     # Ensure script runs relative to its own directory
     # ------------------------------------------------
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(script_dir)
 
     print("--------------------------------------------------")
     print(f"Running readme_count.py from: {script_dir}")
-    print("Recursively scanning ALL subfolders under this directory.")
+    print("Scanning ONLY existing antibody folders.")
     print("--------------------------------------------------")
+
+    # ------------------------------------------------
+    # Define only the folders that exist
+    # ------------------------------------------------
+    antibody_folders = {
+        "Bispecific_mAb",
+        "Bispecific_scFv",
+        "Main",
+        "Other_Formats",
+        "Whole_mAb"
+    }
 
     # ------------------------------------------------
     # Exclude utility / helper scripts
@@ -24,20 +34,22 @@ def update_readme_count():
         "thera_sabdab_scraper.py",
         "validate_antibody_sequences.py",
         "categorize_antibody_format.py",
-        "validate_antibody_sequences.py",
         "validation_report.csv"
     }
 
     antibody_files = []
 
     # ------------------------------------------------
-    # Walk the entire directory tree starting at "."
+    # Walk only the defined antibody folders
     # ------------------------------------------------
-    for root, dirs, files in os.walk(script_dir):
-        for filename in files:
+    for folder in antibody_folders:
+        folder_path = os.path.join(script_dir, folder)
+        if not os.path.exists(folder_path):
+            print(f"⚠️ Folder not found, skipping: {folder}")
+            continue
+        for filename in os.listdir(folder_path):
             if filename.endswith(".py") and filename not in excluded:
-                full_path = os.path.join(root, filename)
-                antibody_files.append(full_path)
+                antibody_files.append(os.path.join(folder_path, filename))
 
     # ------------------------------------------------
     # Display summary
