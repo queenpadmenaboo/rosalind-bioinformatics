@@ -28,7 +28,10 @@ def update_readme_count():
         "thera_sabdab_scraper.py",
         "validate_antibody_sequences.py",
         "categorize_antibody_format.py",
-        "validation_report.csv"
+        "validation_report.csv",
+        "calculate_features.py",
+        "sequence_features.csv",
+        "fix_sequences.py"
     }
 
     # Track files by folder

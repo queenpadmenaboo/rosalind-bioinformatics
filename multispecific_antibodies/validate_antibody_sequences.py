@@ -20,6 +20,7 @@ FOLDER STRUCTURE:
 PURPOSE:
     - Scans root folder + all 4 subfolders for .py files
     - Checks if each antibody exists in CSV
+    - Compares each chain sequence in .py file against CSV sequence
     - Validates sequences contain only valid amino acids (ACDEFGHIKLMNPQRSTVWY)
     - Counts chains per antibody
     - Counts files in each folder
@@ -57,7 +58,9 @@ EXCLUDE_FILES = {
     'categorize_antibody_format.py',
     'categorize_simple.py',
     'therasabdab_analyze_formats.py',
-    'calculate_features.py'
+    'calculate_features.py',
+    'fix_sequences.py',
+    'validation_report.csv'
 }
 
 # ============================
@@ -66,25 +69,29 @@ EXCLUDE_FILES = {
 
 @dataclass
 class AntibodyData:
-    name: str
-    heavy1: str
-    light1: str
-    heavy2: str
-    light2: str
-    format: str
-    status: str
+    # Stores antibody info from CSV
+    name: str       # Therapeutic name
+    heavy1: str     # Heavy chain sequence (primary)
+    light1: str     # Light chain sequence (primary)
+    heavy2: str     # Heavy chain 2 (bispecifics only)
+    light2: str     # Light chain 2 (bispecifics only)
+    format: str     # Antibody format (Whole mAb, Bispecific, etc.)
+    status: str     # Clinical status (Active, Discontinued, etc.)
 
 @dataclass
 class ValidationResult:
-    matched: List[Dict]
-    not_in_csv: List[Dict]
-    invalid_sequences: List[Dict]
+    # Stores validation results for reporting
+    matched: List[Dict]           # Antibodies that passed validation
+    not_in_csv: List[Dict]        # Files not found in CSV
+    invalid_sequences: List[Dict] # Files with sequence errors
 
 # ============================
 # FUNCTIONS
 # ============================
 
 def load_csv_data(csv_file: Path) -> Dict[str, AntibodyData]:
+    # Reads TheraSAbDab CSV and returns dict of antibody data
+    # Key = antibody name (lowercase, underscores)
     antibodies = {}
     with open(csv_file, 'r', encoding='utf-8-sig') as f:
         reader = csv.DictReader(f)
@@ -104,6 +111,9 @@ def load_csv_data(csv_file: Path) -> Dict[str, AntibodyData]:
 
 
 def parse_py_file(filepath: Path) -> Dict[str, str]:
+    # Parses antibody .py file and extracts FASTA sequences
+    # Returns dict: {header: sequence}
+    # Handles 'na' as missing chains (valid for some formats)
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -133,6 +143,9 @@ def parse_py_file(filepath: Path) -> Dict[str, str]:
 
 
 def validate_sequence(seq: str) -> bool:
+    # Checks if sequence contains only valid amino acids
+    # Returns True if valid, False if invalid characters found
+    # 'NA' or empty = valid (means missing chain)
     seq_clean = seq.strip().upper()
     if seq_clean in ('NA', 'N/A', ''):
         return True
@@ -140,10 +153,14 @@ def validate_sequence(seq: str) -> bool:
 
 
 def count_chains(sequences: Dict[str, str]) -> int:
+    # Counts non-NA sequences
+    # Helps identify bispecifics (4 chains) vs whole mAb (2 chains)
     return sum(1 for seq in sequences.values() if seq not in ('NA', ''))
 
 
 def get_all_antibody_files(py_folder: Path) -> List[Path]:
+    # Gets all antibody .py files from root and 4 subfolders
+    # Excludes utility scripts (validate, categorize, etc.)
     py_files = []
     for f in py_folder.glob('*.py'):
         if f.is_file() and f.name not in EXCLUDE_FILES:
@@ -158,6 +175,10 @@ def get_all_antibody_files(py_folder: Path) -> List[Path]:
 
 
 def validate_antibody_files(py_folder: Path, csv_antibodies: Dict[str, AntibodyData]) -> ValidationResult:
+    # Main validation logic
+    # Checks: 1) antibody exists in CSV
+    #         2) sequences match CSV exactly
+    #         3) sequences contain valid amino acids
     matched = []
     not_in_csv = []
     invalid_sequences = []
@@ -185,6 +206,43 @@ def validate_antibody_files(py_folder: Path, csv_antibodies: Dict[str, AntibodyD
         
         csv_data = csv_antibodies[antibody_name]
         
+        # Check sequences match CSV
+        sequence_mismatches = []
+        for header, seq in py_sequences.items():
+            if seq == 'NA':
+                continue
+            header_lower = header.lower()
+            
+            # Determine which CSV sequence to compare against
+            csv_seq = None
+            if 'heavy' in header_lower:
+                if '_2' in header or 'chain_2' in header_lower:
+                    csv_seq = csv_data.heavy2
+                else:
+                    csv_seq = csv_data.heavy1
+            elif 'light' in header_lower:
+                if '_2' in header or 'chain_2' in header_lower:
+                    csv_seq = csv_data.light2
+                else:
+                    csv_seq = csv_data.light1
+            
+            # Compare sequences
+            if csv_seq and seq != csv_seq:
+                sequence_mismatches.append({
+                    'chain': header,
+                    'py_len': len(seq),
+                    'csv_len': len(csv_seq)
+                })
+        
+        if sequence_mismatches:
+            invalid_sequences.append({
+                'name': antibody_name,
+                'error': f"Sequence mismatch: {len(sequence_mismatches)} chain(s) differ from CSV",
+                'mismatches': sequence_mismatches
+            })
+            continue
+        
+        # Validate amino acids
         invalid_chains = []
         for header, seq in py_sequences.items():
             if not validate_sequence(seq):
@@ -205,6 +263,7 @@ def validate_antibody_files(py_folder: Path, csv_antibodies: Dict[str, AntibodyD
 
 
 def print_report(results: ValidationResult):
+    # Prints detailed validation report to console
     print("=" * 70)
     print("VALIDATION REPORT")
     print("=" * 70)
@@ -247,6 +306,7 @@ def print_report(results: ValidationResult):
 
 
 def save_report(results: ValidationResult, output_file: Path):
+    # Saves validation results to CSV file
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['Antibody', 'Status', 'Chain_Count', 'Format', 'Clinical_Status', 'Notes'])
@@ -261,6 +321,7 @@ def save_report(results: ValidationResult, output_file: Path):
 
 
 def main():
+    # Main entry point - runs validation workflow
     print("=" * 70)
     print("ANTIBODY SEQUENCE VALIDATION")
     print("=" * 70)

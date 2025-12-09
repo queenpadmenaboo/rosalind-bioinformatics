@@ -21,11 +21,10 @@ PURPOSE:
     - Scans all 4 subfolders for antibody .py files
     - Parses FASTA sequences from each file
     - Calculates isoelectric point (pI) for each antibody molecule
-    - Skips chains marked as "na" or "n/a" (not applicable)
 
 NOTE ON pI:
     - This script calculates THEORETICAL pI based on amino acid sequence
-    - Uses BioPython's ProteinAnalysis.isoelectric_point() method
+    - Uses BioPython's ProteinAnalysis.isoelectric_point() method (uses 'Bjellqvist' pKa set by default)
     - Experimental pI (from icIEF, capillary isoelectric focusing) may differ
     - Differences due to post-translational modifications (glycosylation, etc.)
 
@@ -43,13 +42,14 @@ REQUIRES:
 
 from pathlib import Path
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
+# Removed the manual IP and ProtParamData imports to avoid errors
 import csv
 
 # ============================
 # CONFIGURATION
 # ============================
 
-ANTIBODY_FOLDER = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
+ANTIBODY_FOLDER = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
 
 CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
 
@@ -65,6 +65,10 @@ EXCLUDE_FILES = {
 # ============================
 
 def parse_py_file(filepath: Path) -> dict:
+    """
+    Parses FASTA format sequences embedded within a .py file.
+    Skips chains marked as "na" or "n/a" (not applicable)
+    """
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -94,14 +98,21 @@ def parse_py_file(filepath: Path) -> dict:
 
 
 def calculate_isoelectric_point(sequence: str) -> float:
+    """
+    Calculates the theoretical pI using Biopython's default method (Bjellqvist scale).
+    """
+    # Clean the sequence to only include standard amino acids
     clean_seq = ''.join(aa for aa in sequence.upper() if aa in 'ACDEFGHIKLMNPQRSTVWY')
     if not clean_seq:
         return None
+    
+    # Use the reliable ProteinAnalysis method, which uses the default scale internally
     analysis = ProteinAnalysis(clean_seq)
     return round(analysis.isoelectric_point(), 2)
 
 
 def get_all_antibody_files(folder: Path) -> list:
+    """Finds all antibody .py files in category subfolders."""
     py_files = []
     for subfolder in CATEGORY_FOLDERS:
         subfolder_path = folder / subfolder
@@ -142,22 +153,25 @@ def main():
             elif 'light' in header_lower:
                 light_seqs.append(seq)
         
-        # Build full molecule sequence
-        # Whole_mAb: 2 heavy + 2 light (double each unique chain)
-        # Everything else: combine chains as-is
+        # Build full molecule sequence (concatenates all chains present)
+        # Whole_mAb format assumes 2 identical heavy + 2 identical light chains
         if folder == 'Whole_mAb':
             if len(heavy_seqs) == 0 or len(light_seqs) == 0:
                 print(f"ERROR: {antibody_name} missing chains - heavy: {len(heavy_seqs)}, light: {len(light_seqs)}")
                 continue
+            # Duplicate the single chain sequence to represent the full molecule
+            # Use [0] to access the string content of the first element in the list
             full_sequence = heavy_seqs[0] * 2 + light_seqs[0] * 2
             num_heavy = 2
             num_light = 2
         else:
+            # For bispecifics/scFvs/etc, combine whatever unique chains are provided
             full_sequence = ''.join(heavy_seqs) + ''.join(light_seqs)
             num_heavy = len(heavy_seqs)
             num_light = len(light_seqs)
         
         total_length = len(full_sequence)
+        # Calculate the single pI value for the entire concatenated sequence
         pI = calculate_isoelectric_point(full_sequence)
         
         results.append({
@@ -173,7 +187,8 @@ def main():
     print("-" * 70)
     for r in results[:10]:
         print(f"  {r['antibody']}: pI = {r['calculated_pI']}, length = {r['total_length_aa']} aa")
-    print(f"  ... and {len(results) - 10} more\n")
+    if len(results) > 10:
+        print(f"  ... and {len(results) - 10} more\n")
     
     output_file = ANTIBODY_FOLDER / 'sequence_features.csv'
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
