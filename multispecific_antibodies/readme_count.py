@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime
+from collections import defaultdict
 
 def update_readme_count():
     # ------------------------------------------------
@@ -24,11 +25,11 @@ def update_readme_count():
         "thera_sabdab_scraper.py",
         "validate_antibody_sequences.py",
         "categorize_antibody_format.py",
-        "validate_antibody_sequences.py",
         "validation_report.csv"
     }
 
-    antibody_files = []
+    # Track files by folder
+    folder_counts = defaultdict(list)
 
     # ------------------------------------------------
     # Walk the entire directory tree starting at "."
@@ -37,17 +38,36 @@ def update_readme_count():
         for filename in files:
             if filename.endswith(".py") and filename not in excluded:
                 full_path = os.path.join(root, filename)
-                antibody_files.append(full_path)
+                
+                # Determine folder category
+                rel_path = os.path.relpath(root, script_dir)
+                if rel_path == ".":
+                    folder_name = "Main"
+                else:
+                    folder_name = rel_path.split(os.sep)[0]
+                
+                folder_counts[folder_name].append(filename)
 
     # ------------------------------------------------
-    # Display summary
+    # Display breakdown by folder
     # ------------------------------------------------
-    print("\nDetected antibody .py files:")
-    for path in antibody_files:
-        print(" -", path)
-
-    total = len(antibody_files)
-    print(f"\nTotal antibodies counted: {total}")
+    print("\n" + "=" * 60)
+    print("ANTIBODY FILES BY FOLDER")
+    print("=" * 60)
+    
+    total = 0
+    for folder in sorted(folder_counts.keys()):
+        count = len(folder_counts[folder])
+        total += count
+        print(f"\n{folder}: {count} files")
+        for fname in sorted(folder_counts[folder])[:3]:
+            print(f"  • {fname}")
+        if count > 3:
+            print(f"  ... and {count - 3} more")
+    
+    print("\n" + "=" * 60)
+    print(f"TOTAL ANTIBODIES: {total}")
+    print("=" * 60)
 
     # ------------------------------------------------
     # Update README.md
@@ -72,7 +92,7 @@ def update_readme_count():
     with open(readme_path, "w", encoding="utf-8") as f:
         f.write(updated)
 
-    print("\nREADME.md updated successfully!")
+    print("\n✓ README.md updated successfully!")
     print(f"New total: {total}")
     print(f"Updated date: {current_date}")
     print("--------------------------------------------------")
