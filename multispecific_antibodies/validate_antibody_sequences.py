@@ -7,10 +7,10 @@ from pathlib import Path
 # ============================
 
 # Path to the CSV downloaded from TheraSAbDab with all antibody data
-THERA_CSV_FILE = r"C:\Users\bunsr\TheraSAbDab_SeqStruc_ 07Dec2025.csv"
+THERA_CSV_FILE = r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv"
 
 # Folder containing the 470 antibody.py files
-ANTIBODY_PY_FOLDER = r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies"
+ANTIBODY_PY_FOLDER = r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"
 
 # Valid amino acids for protein sequences
 VALID_AA = set("ACDEFGHIKLMNPQRSTVWY")
