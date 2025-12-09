@@ -46,8 +46,8 @@ def get_category(format_string):
     return 'Unclassified'
 
 def main():
-    csv_path = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv")
-    py_folder = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
+    csv_path = Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv")
+    py_folder = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
     
     print("=" * 80)
     print("CATEGORIZING ANTIBODY FILES INTO 4 SUBFOLDERS")
