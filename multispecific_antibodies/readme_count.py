@@ -4,9 +4,6 @@ from datetime import datetime
 from collections import defaultdict
 
 def update_readme_count():
-    # ------------------------------------------------
-    # Ensure script runs relative to its own directory
-    # ------------------------------------------------
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     print("--------------------------------------------------")
@@ -14,20 +11,16 @@ def update_readme_count():
     print("Scanning ONLY existing antibody folders.")
     print("--------------------------------------------------")
 
-    # ------------------------------------------------
-    # Define only the folders that exist
-    # ------------------------------------------------
-    antibody_folders = {
+    # Antibody folders to scan
+    antibody_folders = [
         "Bispecific_mAb",
         "Bispecific_scFv",
         "Main",
         "Other_Formats",
         "Whole_mAb"
-    }
+    ]
 
-    # ------------------------------------------------
-    # Exclude utility / helper scripts
-    # ------------------------------------------------
+    # Excluded helper scripts
     excluded = {
         "readme_count.py",
         "sabdabconverter.py",
@@ -41,25 +34,22 @@ def update_readme_count():
     # Track files by folder
     folder_counts = defaultdict(list)
 
-    # ------------------------------------------------
-    # Walk only the defined antibody folders
-    # ------------------------------------------------
+    # Scan folders and count .py files
     for folder in antibody_folders:
         folder_path = os.path.join(script_dir, folder)
         if not os.path.exists(folder_path):
             print(f"⚠️ Folder not found, skipping: {folder}")
             continue
+
         for filename in os.listdir(folder_path):
             if filename.endswith(".py") and filename not in excluded:
-                antibody_files.append(os.path.join(folder_path, filename))
+                folder_counts[folder].append(filename)
 
-    # ------------------------------------------------
     # Display breakdown by folder
-    # ------------------------------------------------
     print("\n" + "=" * 60)
     print("ANTIBODY FILES BY FOLDER")
     print("=" * 60)
-    
+
     total = 0
     for folder in sorted(folder_counts.keys()):
         count = len(folder_counts[folder])
@@ -69,16 +59,13 @@ def update_readme_count():
             print(f"  • {fname}")
         if count > 3:
             print(f"  ... and {count - 3} more")
-    
+
     print("\n" + "=" * 60)
     print(f"TOTAL ANTIBODIES: {total}")
     print("=" * 60)
 
-    # ------------------------------------------------
     # Update README.md
-    # ------------------------------------------------
     readme_path = os.path.join(script_dir, "README.md")
-
     if not os.path.exists(readme_path):
         print("\n❌ ERROR: README.md not found!")
         return
@@ -101,7 +88,6 @@ def update_readme_count():
     print(f"New total: {total}")
     print(f"Updated date: {current_date}")
     print("--------------------------------------------------")
-
 
 if __name__ == "__main__":
     update_readme_count()
