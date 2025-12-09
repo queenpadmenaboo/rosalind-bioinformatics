@@ -20,8 +20,12 @@ FOLDER STRUCTURE:
 PURPOSE:
     - Scans all 4 subfolders for antibody .py files
     - Parses FASTA sequences from each file
-    - Calculates isoelectric point (pI) for each antibody molecule
-    - Calculates additional features: GRAVY index, Instability Index, Aromaticity, and Amino Acid Composition (%)
+    - Calculates several theoretical physicochemical properties for each antibody molecule:
+        - Isoelectric Point (pI)
+        - GRAVY Index (Hydrophobicity)
+        - Instability Index (Stability prediction)
+        - Aromaticity (Aromatic residue frequency)
+        - Amino Acid Composition (%)
 
 NOTE ON pI:
     - This script calculates THEORETICAL pI based on amino acid sequence
@@ -100,9 +104,17 @@ def parse_py_file(filepath: Path) -> dict:
     
     return sequences
 
+
 def analyze_sequence_features(sequence: str) -> dict:
     """
     Calculates various theoretical features using Biopython's ProteinAnalysis.
+
+    Features calculated:
+    - calculated_pI: Isoelectric point (theoretical).
+    - gravy: Grand Average of Hydropathicity (hydrophobicity index).
+    - instability_index: Predicts stability (values > 40 typically unstable).
+    - aromaticity: Proportion of F, W, and Y residues.
+    - AA_X_percent: Percentage of each standard amino acid (A-Y).
     """
     clean_seq = ''.join(aa for aa in sequence.upper() if aa in "ACDEFGHIKLMNPQRSTVWY")
     if not clean_seq:
@@ -118,9 +130,8 @@ def analyze_sequence_features(sequence: str) -> dict:
         'aromaticity': round(analysis.aromaticity(), 4)
     }
 
-    # Calculate Amino Acid Percentages (Composition) using the NEW attribute
-    # Changed from: aa_percents = analysis.get_amino_acids_percent()
-    aa_percents = analysis.amino_acids_percent 
+    # Calculate Amino Acid Percentages (Composition)
+    aa_percents = analysis.amino_acids_percent
     
     for aa in STANDARD_AAS:
          # Ensure all 20 AA columns exist, even if percentage is 0.0
