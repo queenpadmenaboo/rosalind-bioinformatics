@@ -19,7 +19,6 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 def parse_fasta_string(fasta_string, source_file_name):
     """Parses a multi-entry FASTA string into a list of dictionaries."""
     sequences_list = []
-    # Check for both single quotes and triple quotes in the FASTA string for robustness
     fasta_string = fasta_string.strip('\"\'') 
     pattern = re.compile(r'>([^\n]+)\n([A-Z\n]+)')
     
@@ -58,20 +57,18 @@ def calculate_sasa_features(name, sequence, source_file):
 def process_all_py_files(root_directory: Path):
     """Recursively finds all .py files and extracts sequence string variables."""
     
-    # Use rglob to find all .py files
+    # Find all .py files recursively from the root
     py_files = list(root_directory.rglob("*.py"))
     
-    # CRITICAL FILTER: Skip the script itself and any file in the same directory as the script.
-    # This prevents the script from trying to import itself or other utility scripts in its own folder.
-    script_path = Path(__file__).resolve()
-    antibody_files = [f for f in py_files if f.resolve() != script_path and f.parent != script_path.parent]
-
+    # CRITICAL FIX: Filter out any file located in the ROOT_DIR itself.
+    # We only want files that reside in a SUBDIRECTORY.
+    antibody_files = [f for f in py_files if f.parent.resolve() != root_directory.resolve()]
+    
     if not antibody_files:
-        print(f"ERROR: No antibody definition files found in subfolders of {root_directory}.")
-        print("Please ensure your antibody.py files are NOT in the same directory as the processing script.")
+        print(f"ERROR: No antibody definition files found in subdirectories of {root_directory}.")
         return pd.DataFrame() 
 
-    print(f"Found {len(antibody_files)} potential antibody files. Starting extraction...")
+    print(f"Found {len(antibody_files)} potential antibody files in subfolders. Starting extraction...")
     
     all_sequences_to_process = []
     
@@ -82,11 +79,6 @@ def process_all_py_files(root_directory: Path):
             # Safely load the Python file as a module
             spec = importlib.util.spec_from_file_location(module_name, file_path)
             module = importlib.util.module_from_spec(spec)
-            
-            # --- EXECUTION HACK: Use 'if __name__ == "__main__":' to prevent main logic execution ---
-            # By executing the module, we load the variables, but the main logic is skipped.
-            exec_globals = module.__dict__
-            exec_globals['__name__'] = 'a_sub_module' # HACK: set __name__ to something other than '__main__'
             spec.loader.exec_module(module)
             
             sequence_string_found = False
@@ -105,10 +97,11 @@ def process_all_py_files(root_directory: Path):
                     break 
 
             if not sequence_string_found:
+                 # This warning is for files in subfolders that don't contain sequences, which is fine
                  print(f"    WARNING: No valid sequence string found in {file_path.name}.")
             
         except Exception as e:
-            # Catch errors if the file is truly corrupt or has severe syntax errors
+            # Catch errors if the file is truly corrupt or has syntax errors
             print(f"    ERROR: Failed to load/execute {file_path.name}. Error: {e}")
     
     print(f"Total {len(all_sequences_to_process)} sequences extracted for feature calculation.")
