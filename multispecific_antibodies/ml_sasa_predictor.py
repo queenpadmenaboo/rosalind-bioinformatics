@@ -14,8 +14,11 @@ import numpy as np                                          # A powerful library
 
 
 ROOT_DIR = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies") 
-# This is the name of the file where all our results will be saved when finished.
-OUTPUT_FILENAME = "all_antibody_sasa_features.csv"
+
+OUTPUT_FILENAME = ROOT_DIR / "all_antibody_sasa_features.csv"
+
+OUTPUT_FILENAME_STR = str(OUTPUT_FILENAME)
+
 
 EXCLUDE_FILES = {
     "readme_count.py", "sabdabconverter.py", "selenium_antibody_scraper.py",
@@ -77,15 +80,14 @@ def calculate_sasa_features(name, sequence, source_file):
         dict: A dictionary of calculated features ready for a Pandas DataFrame.
               E.g., {'Sequence_Length': 120, 'pI': 8.25, 'GRAVY_Score': -0.15, ...}
     """
-    
     # Create a ProteinAnalysis object from the sequence; this object holds many useful tools
     X = ProteinAnalysis(sequence)
-    
-    # Define which single-letter codes are "Polar" (water-loving)
+
+    # Define which single-letter codes are "Polar" (hydrophilic)
     polar_residues = ['Q', 'N', 'S', 'T', 'H', 'K', 'R', 'E', 'D', 'Y', 'C']
     polar_count = sum(sequence.count(res) for res in polar_residues)
-    polar_percentage = (polar_count / len(sequence)) * 100
-
+    
+    polar_percentage = (polar_count / len(sequence)) 
     # Get the percentage breakdown of every single amino acid type (A, L, G, etc.)
     composition = X.amino_acids_percent 
     
@@ -95,18 +97,16 @@ def calculate_sasa_features(name, sequence, source_file):
     kd_scale = ProtParamData.kd
     # Create a list of 'slipperiness scores' for our specific sequence
     scores = [kd_scale.get(aa, 0.0) for aa in sequence]
-    
     # Use Pandas to calculate the 'rolling average' over a window of 9 residues. 
     # This helps find local hydrophobic "patches".
     profile = pd.Series(scores).rolling(window=9, min_periods=1, center=True).mean()
     
-    avg_kd_hydrophobicity = profile.mean() # Average slipperiness of the whole thing
-    max_kd_hydrophobicity = profile.max() # The peak slipperiness score found in any window
+    avg_kd_hydrophobicity = profile.mean()
+    max_kd_hydrophobicity = profile.max()
 
     # Calculate the GRAVY score (Grand Average of Hydropathicity)
     gravy_score = X.gravy()
-    
-    # Return all features in a structured dictionary
+        
     return {
         'Sequence_Name': name,
         'Source_File': source_file,
@@ -115,15 +115,15 @@ def calculate_sasa_features(name, sequence, source_file):
         'MW': X.molecular_weight(),
         'Polar_Pct': polar_percentage,
         # Get individual percentages for all nonpolar residues (used for hydrophobicity learning)
-        'A_Pct': composition.get('A', 0) * 100,
-        'L_Pct': composition.get('L', 0) * 100,
-        'V_Pct': composition.get('V', 0) * 100,
-        'I_Pct': composition.get('I', 0) * 100,
-        'P_Pct': composition.get('P', 0) * 100,
-        'F_Pct': composition.get('F', 0) * 100,
-        'W_Pct': composition.get('W', 0) * 100,
-        'M_Pct': composition.get('M', 0) * 100,
-        'G_Pct': composition.get('G', 0) * 100,
+        'A_Pct': composition.get('A', 0),
+        'L_Pct': composition.get('L', 0),
+        'V_Pct': composition.get('V', 0),
+        'I_Pct': composition.get('I', 0),
+        'P_Pct': composition.get('P', 0),
+        'F_Pct': composition.get('F', 0),
+        'W_Pct': composition.get('W', 0),
+        'M_Pct': composition.get('M', 0),
+        'G_Pct': composition.get('G', 0),
         'GRAVY_Score': gravy_score,
         'Avg_KD_Hydrophobicity': avg_kd_hydrophobicity,
         'Max_KD_Hydrophobicity': max_kd_hydrophobicity,
