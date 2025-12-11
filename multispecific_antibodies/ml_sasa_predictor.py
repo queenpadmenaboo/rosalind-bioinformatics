@@ -231,5 +231,3 @@ if __name__ == '__main__':
     # 4. Save the final data table to a CSV file (Comma Separated Values)
     results_df.to_csv(OUTPUT_FILENAME, index=False, float_format='%.2f')
     print(f"\nFinal results saved to '{OUTPUT_FILENAME}'")
-
-
