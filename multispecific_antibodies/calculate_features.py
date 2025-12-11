@@ -50,18 +50,14 @@ CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_For
 EXCLUDE_FILES = {
     'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
     'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
-    'categorize_antibody_format.py', 'categorize_simple.py',
+    'categorize_antibody_format.py', 'fix_sequences.py',
     'therasabdab_analyze_formats.py', 'calculate_features.py',
     'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
     'all_antibody_sasa_features.csv'
 }
 
-# Define the 20 standard amino acids for consistency
 STANDARD_AAS = sorted("ACDEFGHIKLMNPQRSTVWY")
 
-# ============================
-# FUNCTIONS
-# ============================
 
 def parse_py_file(filepath: Path) -> dict:
     """
