@@ -31,7 +31,10 @@ def update_readme_count():
         "validation_report.csv",
         "calculate_features.py",
         "sequence_features.csv",
-        "fix_sequences.py"
+        "sequence_features.xlsx",
+        "fix_sequences.py",
+        "ml_sasa_predictor.py",
+        "all_antibody_sasa_features.csv"   
     }
 
     # Track files by folder
