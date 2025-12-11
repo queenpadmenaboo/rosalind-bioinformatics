@@ -14,19 +14,53 @@ import csv
 import shutil
 from pathlib import Path
 from typing import Dict
+import os
+import sys
 
-# ============================
-# CONFIGURATION
-# ============================
 
-CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv")
-ANTIBODY_FOLDER = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
+CANDIDATE_ROOTS = [
+    Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies"),
+    Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"),
+]
 
+CANDIDATE_CSV_PATHS = [
+    Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv"),
+    Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv"),
+]
+
+
+# 1. Logic to determine the active ROOT_DIR
+env = os.environ.get("ROOT_DIR")
+if env:
+    ROOT_DIR = Path(env).expanduser().resolve()
+else:
+    ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), None)
+
+if ROOT_DIR is None:
+    raise FileNotFoundError(
+        "No valid ROOT_DIR found. Set ROOT_DIR environment variable or ensure one of the candidate paths exists."
+    )
+
+
+# 2. Logic to determine the active CSV_PATH
+CSV_PATH = None
+
+for potential_csv_path in CANDIDATE_CSV_PATHS:
+    if potential_csv_path.exists():
+        CSV_PATH = potential_csv_path
+        break 
+
+if CSV_PATH is None:
+    raise FileNotFoundError(
+        f"No valid CSV file found among candidates: {CANDIDATE_CSV_PATHS}"
+    )
+
+
+# --- Configuration ---
+
+ANTIBODY_FOLDER = ROOT_DIR
 CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
 
-# ============================
-# FUNCTIONS
-# ============================
 
 def load_csv_data(csv_file: Path) -> Dict[str, Dict]:
     # Reads TheraSAbDab CSV and returns dict of antibody data
@@ -47,7 +81,7 @@ def load_csv_data(csv_file: Path) -> Dict[str, Dict]:
 
 
 def find_antibody_file(antibody_name: str) -> Path:
-    # Finds the .py file for an antibody in any of the 4 folders
+    # Finds the .py file for an antibody in any of the 4 folders using the resolved ANTIBODY_FOLDER
     for folder in CATEGORY_FOLDERS:
         filepath = ANTIBODY_FOLDER / folder / f"{antibody_name}.py"
         if filepath.exists():
@@ -70,12 +104,6 @@ def fix_antibody_file(filepath: Path, csv_data: Dict) -> bool:
     shutil.copy(filepath, backup_path)
     
     # Build new file content
-    # Format: antibody_name = """
-    # >Header_Heavy_Chain_1
-    # SEQUENCE
-    # >Header_Light_Chain_1
-    # SEQUENCE
-    # """
     
     heavy1 = csv_data['heavy1'] if csv_data['heavy1'] else 'na'
     light1 = csv_data['light1'] if csv_data['light1'] else 'na'
@@ -195,7 +223,7 @@ def main():
                     if mismatches:
                         antibodies_to_fix.append(antibody_name)
     
-    # Check root folder too
+    # Check root folder also
     for filepath in ANTIBODY_FOLDER.glob('*.py'):
         if filepath.is_file():
             antibody_name = filepath.stem
@@ -256,7 +284,7 @@ def main():
     print(f"Fixed: {fixed}")
     print(f"Errors: {errors}")
     print("=" * 70)
-    print("\nRun validate_antibody_sequences.py to verify fixes.")
+    print("\nRun validate_antibody_sequences.py")
 
 
 if __name__ == "__main__":

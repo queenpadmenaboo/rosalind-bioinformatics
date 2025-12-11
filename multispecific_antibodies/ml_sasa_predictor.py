@@ -6,9 +6,24 @@ import re
 import importlib.util 
 from Bio import BiopythonDeprecationWarning
 import sys
+import os
 
-# --- CRITICAL CONFIGURATION (YOUR PATH) ---
-ROOT_DIR = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies") 
+CANDIDATE_ROOTS = [
+    Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies"),
+    Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"),
+]
+
+env = os.environ.get("ROOT_DIR")
+if env:
+    ROOT_DIR = Path(env).expanduser().resolve()
+else:
+    ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), None)
+
+if ROOT_DIR is None:
+    raise FileNotFoundError(
+        "No valid ROOT_DIR found. Set ROOT_DIR environment variable or ensure one of the candidate paths exists."
+    )
+
 OUTPUT_FILENAME = "all_antibody_sasa_features.csv"
 
 # Suppress the Biopython deprecation warnings
