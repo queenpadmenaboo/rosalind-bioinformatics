@@ -44,7 +44,7 @@ def update_readme_count():
     for folder in antibody_folders:
         folder_path = os.path.join(script_dir, folder)
         if not os.path.exists(folder_path):
-            print(f"⚠️ Folder not found, skipping: {folder}")
+            print(f" Folder not found, skipping: {folder}")
             continue
 
         for filename in os.listdir(folder_path):
@@ -73,7 +73,7 @@ def update_readme_count():
     # Update README.md
     readme_path = os.path.join(script_dir, "README.md")
     if not os.path.exists(readme_path):
-        print("\n❌ ERROR: README.md not found!")
+        print("\n ERROR: README.md not found!")
         return
 
     with open(readme_path, "r", encoding="utf-8") as f:
@@ -90,7 +90,7 @@ def update_readme_count():
     with open(readme_path, "w", encoding="utf-8") as f:
         f.write(updated)
 
-    print("\n✓ README.md updated successfully!")
+    print("\n README.md updated successfully!")
     print(f"New total: {total}")
     print(f"Updated date: {current_date}")
     print("--------------------------------------------------")

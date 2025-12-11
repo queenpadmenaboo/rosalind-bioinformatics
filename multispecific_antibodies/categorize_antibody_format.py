@@ -7,15 +7,6 @@ FOLDER STRUCTURE:
     ├── Bispecific_scFv/
     ├── Other_Formats/
     ├── Whole_mAb/
-    ├── calculate_features.py
-    ├── categorize_antibody_format.py
-    ├── readme_count.py
-    ├── README.md
-    ├── sabdabconverter.py
-    ├── selenium_antibody_scraper.py
-    ├── thera_sabdab_scraper.py
-    ├── validate_antibody_sequences.py
-    └── validation_report.csv
 
 PURPOSE:
     - Reads format from TheraSAbDab CSV for each antibody file in root folder
