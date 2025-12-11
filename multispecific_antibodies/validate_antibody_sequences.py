@@ -37,31 +37,62 @@ import csv
 from pathlib import Path
 from typing import Dict, List, Set
 from dataclasses import dataclass
+import os
 
-# ============================
-# CONFIGURATION
-# ============================
 
-CSV_PATH = Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv")
-ANTIBODY_FOLDER = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
+CANDIDATE_ROOTS = [
+    Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies"),
+    Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"),
+]
 
-VALID_AA: Set[str] = set("ACDEFGHIKLMNPQRSTVWY")
+CANDIDATE_CSV_PATHS = [
+    Path(r"C:\Users\bunsr\TheraSAbDab_SeqStruc_07Dec2025.csv"),
+    Path(r"C:\Users\meeko\TheraSAbDab_SeqStruc_08Dec2025.csv"),
+]
+
+
+env = os.environ.get("ROOT_DIR")
+if env:
+    ROOT_DIR = Path(env).expanduser().resolve()
+else:
+    ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), None)
+
+if ROOT_DIR is None:
+    raise FileNotFoundError(
+        "No valid ROOT_DIR found. Set ROOT_DIR environment variable or ensure one of the candidate paths exists."
+    )
+
+
+CSV_PATH = None
+
+for potential_csv_path in CANDIDATE_CSV_PATHS:
+    if potential_csv_path.exists():
+        CSV_PATH = potential_csv_path
+        break 
+
+if CSV_PATH is None:
+    raise FileNotFoundError(
+        f"No valid CSV file found among candidates: {CANDIDATE_CSV_PATHS}"
+    )
+
+
+# --- Project Specific Configuration ---
 
 CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
 
 EXCLUDE_FILES = {
-    'readme_count.py',
-    'sabdabconverter.py',
-    'selenium_antibody_scraper.py',
-    'thera_sabdab_scraper.py',
-    'validate_antibody_sequences.py',
-    'categorize_antibody_format.py',
-    'categorize_simple.py',
-    'therasabdab_analyze_formats.py',
-    'calculate_features.py',
-    'fix_sequences.py',
-    'validation_report.csv'
+    'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
+    'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
+    'categorize_antibody_format.py', 'fix_sequences.py',
+    'therasabdab_analyze_formats.py', 'calculate_features.py',
+    'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
+    'all_antibody_sasa_features.csv'
 }
+
+ANTIBODY_FOLDER = ROOT_DIR
+
+VALID_AA: Set[str] = set("ACDEFGHIKLMNPQRSTVWY")
+
 
 # ============================
 # DATA STRUCTURES

@@ -469,3 +469,4 @@ sonelokimab1,VALIDATED,2,Trispecific Single Domains (VH-VH'-VH''); Bispecific En
 sonelokimab2,VALIDATED,1,Trispecific Single Domains (VH-VH'-VH''); Monospecific Entry,Active,
 tilrekimig1,VALIDATED,4,Trispecific Mixed mAbs; Bispecific entry,Active,
 tilrekimig2,VALIDATED,2,Trispecific Mixed mAbs; Monospecific entry,Active,
+fix_sequences,INVALID,0,,,No sequences found
