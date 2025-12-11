@@ -116,17 +116,17 @@ def calculate_sasa_features(name, sequence, source_file):
         'Polar_Pct': polar_percentage,
         # Get individual percentages for all nonpolar residues (used for hydrophobicity learning)
         'A_Pct': composition.get('A', 0),
-        'L_Pct': composition.get('L', 0),
-        'V_Pct': composition.get('V', 0),
-        'I_Pct': composition.get('I', 0),
-        'P_Pct': composition.get('P', 0),
         'F_Pct': composition.get('F', 0),
-        'W_Pct': composition.get('W', 0),
-        'M_Pct': composition.get('M', 0),
         'G_Pct': composition.get('G', 0),
+        'I_Pct': composition.get('I', 0),
+        'L_Pct': composition.get('L', 0),
+        'M_Pct': composition.get('M', 0),
+        'P_Pct': composition.get('P', 0),
+        'V_Pct': composition.get('V', 0),  
+        'W_Pct': composition.get('W', 0),
         'GRAVY_Score': gravy_score,
         'Avg_KD_Hydrophobicity': avg_kd_hydrophobicity,
-        'Max_KD_Hydrophobicity': max_kd_hydrophobicity,
+        'Max_KD_Hydrophobicity': max_kd_hydrophobicity
     }
 
 # --- Main Processing Loop: Reads Python Variables from Files ---
