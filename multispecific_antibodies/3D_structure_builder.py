@@ -4,11 +4,12 @@ from io import StringIO
 
 import torch
 from transformers.models.bert.configuration_bert import BertConfig
+from transformers.models.bert.tokenization_bert import BertTokenizer
 from igfold import IgFoldRunner
 from Bio import SeqIO
 
 # Allowlist BertConfig for safe checkpoint loading (IgFold / AntiBERTy)
-torch.serialization.add_safe_globals([BertConfig])
+torch.serialization.add_safe_globals([BertConfig, BertTokenizer])
 
 # --- Configuration Variables ---
 USE_REFINEMENT = True
