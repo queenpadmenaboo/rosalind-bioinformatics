@@ -89,6 +89,7 @@ def process_directory(base_dir, subfolders):
                     print(f"Predicting structure for {pair_id}...")
 
                     predicted_structure = runner.fold(
+                        pdb_file=None,
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
                     )
