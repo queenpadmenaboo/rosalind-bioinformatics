@@ -60,12 +60,12 @@ def process_directory(base_dir, subfolders):
                 spec = importlib.util.spec_from_file_location(antibody_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-
-                if hasattr(module, antibody_name):
-                    sequence_string = getattr(module, antibody_name)
+                
+                if hasattr(module, 'sequence_string'):
+                    sequence_string = getattr(module, 'sequence_string')
                     sequence_string = sequence_string.strip() 
                 else:
-                    print(f"Failed to find variable '{antibody_name}' in {file_path}. Skipping.")
+                    print(f"Failed to find generic variable 'sequence_string' in {file_path}. Skipping.")
                     continue
 
                 paired_sequences_list = parse_fasta_string_to_pairs(sequence_string)
