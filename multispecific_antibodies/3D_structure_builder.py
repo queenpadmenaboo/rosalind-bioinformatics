@@ -4,6 +4,10 @@ from io import StringIO
 from pathlib import Path
 import importlib.util
 import re
+import warnings
+
+# Suppress warnings
+warnings.filterwarnings("ignore")
 
 import torch
 from transformers.models.bert.configuration_bert import BertConfig
@@ -19,7 +23,9 @@ USE_REFINEMENT = False
 OUTPUT_BASE_DIR = Path("PDB_Output_Files")
 FOLDERS_TO_PROCESS = ["Bispecific_mAb", "Bispecific_scFv", "Other_Formats", "Whole_mAb"]
 
+print("Initializing IgFold...", flush=True)
 runner = IgFoldRunner()
+print("IgFold ready.\n", flush=True)
 
 def parse_fasta_string_to_pairs(fasta_string):
     chains_by_number = {}
@@ -50,13 +56,17 @@ def process_directory(base_dir, subfolders):
         output_folder_path = OUTPUT_BASE_DIR / folder_name
         os.makedirs(output_folder_path, exist_ok=True)
 
+    total_processed = 0
+    total_skipped = 0
+
     for folder_name in subfolders:
         folder_path = base_path / folder_name
         if not folder_path.exists():
-            print(f"Input folder not found: {folder_path}, skipping.")
+            print(f"Input folder not found: {folder_path}, skipping.", flush=True)
             continue
 
         antibody_files = glob.glob(str(folder_path / "*.py"))
+        print(f"\n=== Processing {folder_name}: {len(antibody_files)} files ===\n", flush=True)
 
         for file_path in antibody_files:
             file_path = Path(file_path)
@@ -71,7 +81,7 @@ def process_directory(base_dir, subfolders):
                     sequence_string = getattr(module, antibody_name)
                     sequence_string = sequence_string.strip() 
                 else:
-                    print(f"Failed to find variable '{antibody_name}' in {file_path}. Skipping.")
+                    print(f"Failed to find variable '{antibody_name}' in {file_path}. Skipping.", flush=True)
                     continue
 
                 paired_sequences_list = parse_fasta_string_to_pairs(sequence_string)
@@ -83,20 +93,23 @@ def process_directory(base_dir, subfolders):
                     
                     if output_path.exists():
                         print(f"Skipping {pair_id} (already exists)", flush=True)
+                        total_skipped += 1
                         continue
                     
                     print(f"Predicting structure for {pair_id}...", flush=True)
 
-                    predicted_structure = runner.fold(
+                    runner.fold(
                         pdb_file=str(output_path),
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
                     )
                     print(f"Saved {output_path}", flush=True)
-                    
+                    total_processed += 1
 
             except Exception as e:
-                print(f"Failed to process {file_path}: {e}")
+                print(f"Failed to process {file_path}: {e}", flush=True)
+
+    print(f"\n=== DONE: {total_processed} structures created, {total_skipped} skipped ===", flush=True)
 
 
 if __name__ == "__main__":
