@@ -3,6 +3,7 @@ import glob
 from io import StringIO
 from pathlib import Path
 import importlib.util
+import re
 
 import torch
 from transformers.models.bert.configuration_bert import BertConfig
@@ -23,20 +24,24 @@ runner = IgFoldRunner()
 def parse_fasta_string_to_pairs(fasta_string):
     chains_by_number = {}
     handle = StringIO(fasta_string)
-    for record in SeqIO.parse(handle, "fasta"): 
+    for record in SeqIO.parse(handle, "fasta"):
         seq_id = record.id
         seq = str(record.seq)
 
-        is_heavy = "_Heavy_Chain" in seq_id or "_h" in seq_id.lower() or "_h1" in seq_id.lower() or "heavy" in seq_id.lower()
-        is_light = "_Light_Chain" in seq_id or "_l" in seq_id.lower() or "_l1" in seq_id.lower() or "light" in seq_id.lower()
+        # Extract pair number from end (e.g., "_1" or "_2")
+        number_match = re.search(r'_(\d+)$', seq_id)
+        pair_num = number_match.group(1) if number_match else "1"
 
-        if is_heavy or is_light:
-            chain_type = "H" if is_heavy else "L"
-            chains_by_number.setdefault("1", {})[chain_type] = seq
+        is_heavy = "heavy" in seq_id.lower()
+        is_light = "light" in seq_id.lower()
+
+        if is_heavy:
+            chains_by_number.setdefault(pair_num, {})["H"] = seq
+        elif is_light:
+            chains_by_number.setdefault(pair_num, {})["L"] = seq
 
     # Return only complete pairs
     return [chains for chains in chains_by_number.values() if "H" in chains and "L" in chains]
-
 
 def process_directory(base_dir, subfolders):
     base_path = Path(base_dir)
@@ -76,18 +81,14 @@ def process_directory(base_dir, subfolders):
                     pair_id = f"{antibody_name}_Pair_{i+1}"
                     print(f"Predicting structure for {pair_id}...")
 
+                    output_path = output_folder_path / f"{pair_id}.pdb"
                     predicted_structure = runner.fold(
-                        pdb_file=None,
+                        pdb_file=str(output_path),
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
                     )
+                    print(f"Saved {output_path}")
                     
-                    if predicted_structure is not None:
-                        output_path = output_folder_path / f"{pair_id}.pdb"
-                        predicted_structure.save(str(output_path))
-                        print(f"Saved {output_path}")
-                    else:
-                        print(f"Prediction failed for {pair_id}, no structure returned by runner.fold().")
 
             except Exception as e:
                 print(f"Failed to process {file_path}: {e}")
