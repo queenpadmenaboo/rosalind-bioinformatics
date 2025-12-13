@@ -45,12 +45,15 @@ OUTPUT_FILENAME = "all_antibody_sasa_chains.csv"
 OUTPUT_FILE_PATH = ROOT_DIR / OUTPUT_FILENAME
 
 EXCLUDE_FILES = {
-    "readme_count.py", "sabdabconverter.py", "selenium_antibody_scraper.py",
-    "thera_sabdab_scraper.py", "validate_antibody_sequences.py",
-    "categorize_antibody_format.py", "validation_report.csv",
-    "calculate_features.py", "sequence_features.csv", "sequence_features.xlsx",
-    "fix_sequences.py", "ml_sasa_predictor.py", "all_antibody_sasa_features.csv"
+      'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
+    'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
+    'categorize_antibody_format.py', 'fix_sequences.py',
+    'therasabdab_analyze_formats.py', 'calculate_features.py',
+    'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
+    'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
+    '3D_structure_builder.py'
 }
+
 
 # Define the 20 standard amino acids for consistency
 STANDARD_AAS = sorted("ACDEFGHIKLMNPQRSTVWY")

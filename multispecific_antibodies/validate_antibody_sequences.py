@@ -86,7 +86,8 @@ EXCLUDE_FILES = {
     'categorize_antibody_format.py', 'fix_sequences.py',
     'therasabdab_analyze_formats.py', 'calculate_features.py',
     'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
-    'all_antibody_sasa_features.csv'
+    'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
+    '3D_structure_builder.py',
 }
 
 ANTIBODY_FOLDER = ROOT_DIR

@@ -3,6 +3,15 @@ import re
 from datetime import datetime
 from collections import defaultdict
 
+EXCLUDE_FILES = {
+    'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
+    'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
+    'categorize_antibody_format.py', 'fix_sequences.py',
+    'therasabdab_analyze_formats.py', 'calculate_features.py',
+    'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
+    'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
+    '3D_structure_builder.py'
+}
 def update_readme_count():
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,23 +29,6 @@ def update_readme_count():
         "Whole_mAb"
     ]
 
-    # Excluded helper scripts
-    excluded = {
-        "readme_count.py",
-        "sabdabconverter.py",
-        "selenium_antibody_scraper.py",
-        "thera_sabdab_scraper.py",
-        "validate_antibody_sequences.py",
-        "categorize_antibody_format.py",
-        "validation_report.csv",
-        "calculate_features.py",
-        "sequence_features.csv",
-        "sequence_features.xlsx",
-        "fix_sequences.py",
-        "ml_sasa_predictor.py",
-        "all_antibody_sasa_features.csv"   
-    }
-
     # Track files by folder
     folder_counts = defaultdict(list)
 
@@ -48,7 +40,7 @@ def update_readme_count():
             continue
 
         for filename in os.listdir(folder_path):
-            if filename.endswith(".py") and filename not in excluded:
+            if filename.endswith(".py") and filename not in EXCLUDE_FILES:
                 folder_counts[folder].append(filename)
 
     # Display breakdown by folder

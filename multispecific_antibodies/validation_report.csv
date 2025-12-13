@@ -102,6 +102,7 @@ evolocumab,VALIDATED,2,Whole mAb,Active,
 farletuzumab,VALIDATED,2,Whole mAb,Discontinued,
 fasinumab,VALIDATED,2,Whole mAb,Discontinued,
 feladilimab,VALIDATED,2,Whole mAb,Active,
+felzartamab,VALIDATED,2,Whole mAb,Active,
 fianlimab,VALIDATED,2,Whole mAb,Active,
 ficlatuzumab,VALIDATED,2,Whole mAb,Active,
 finotonlimab,VALIDATED,2,Whole mAb,Active,
@@ -469,4 +470,3 @@ sonelokimab1,VALIDATED,2,Trispecific Single Domains (VH-VH'-VH''); Bispecific En
 sonelokimab2,VALIDATED,1,Trispecific Single Domains (VH-VH'-VH''); Monospecific Entry,Active,
 tilrekimig1,VALIDATED,4,Trispecific Mixed mAbs; Bispecific entry,Active,
 tilrekimig2,VALIDATED,2,Trispecific Mixed mAbs; Monospecific entry,Active,
-fix_sequences,INVALID,0,,,No sequences found
