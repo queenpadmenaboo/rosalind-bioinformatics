@@ -34,6 +34,7 @@ def parse_fasta_string_to_pairs(fasta_string):
             chain_type = "H" if is_heavy else "L"
             chains_by_number.setdefault("1", {})[chain_type] = seq
 
+    # Return only complete pairs
     return [chains for chains in chains_by_number.values() if "H" in chains and "L" in chains]
 
 
@@ -61,11 +62,11 @@ def process_directory(base_dir, subfolders):
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 
-                if hasattr(module, 'sequence_string'):
-                    sequence_string = getattr(module, 'sequence_string')
+                if hasattr(module, antibody_name):
+                    sequence_string = getattr(module, antibody_name)
                     sequence_string = sequence_string.strip() 
                 else:
-                    print(f"Failed to find generic variable 'sequence_string' in {file_path}. Skipping.")
+                    print(f"Failed to find variable '{antibody_name}' in {file_path}. Skipping.")
                     continue
 
                 paired_sequences_list = parse_fasta_string_to_pairs(sequence_string)
