@@ -88,7 +88,7 @@ def process_directory(base_dir, subfolders):
                     pair_id = f"{antibody_name}_Pair_{i+1}"
                     print(f"Predicting structure for {pair_id}...")
 
-                    predicted_structure = runner.predict(
+                    predicted_structure = runner.fold(
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
                     )
