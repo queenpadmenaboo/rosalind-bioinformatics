@@ -7,10 +7,12 @@ biophysical features (pI, gravy, instability, aromaticity, AA fractions) using B
 and compiles the results into a structured Pandas DataFrame, with one row per antibody product.
 
 REQUIRES:
-    pip install biopython pandas xlsxwriter
+    pip install biopython pandas xlsxwriter openpyxl
 """
 
 import pandas as pd
+# Added this line to format how all Pandas DataFrames display floats (2 decimal places)
+pd.options.display.float_format = '{:.2f}'.format
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from pathlib import Path
 import warnings
@@ -21,6 +23,7 @@ import sys
 import os
 import numpy as np
 from Bio.SeqUtils import ProtParamData # For KD scale access
+from openpyxl import load_workbook 
 
 
 # --- Dynamic Path Resolution ---
@@ -41,7 +44,8 @@ if ROOT_DIR is None:
         "No valid ROOT_DIR found. Set ROOT_DIR environment variable or ensure one of the candidate paths exists."
     )
 
-OUTPUT_FILENAME = "all_antibody_sasa_chains.csv"
+# Changed output file extension to .xlsx
+OUTPUT_FILENAME = "all_antibody_sasa_chains.xlsx" 
 OUTPUT_FILE_PATH = ROOT_DIR / OUTPUT_FILENAME
 
 EXCLUDE_FILES = {
@@ -121,7 +125,7 @@ def calculate_sasa_features(name, sequence, source_file, folder_name):
     
     # Add individual percentages for all standard AAs
     for aa in STANDARD_AAS:
-         features[f'AA_{aa}_Pct'] = composition.get(aa, 0) * 100 # Convert fraction to percentage
+         features[f'AA_{aa}_Pct'] = composition.get(aa, 0)
          
     return features
 
@@ -173,9 +177,10 @@ def process_all_py_files(root_directory: Path):
             # Parse the FASTA string into individual chains
             chains = parse_fasta_string(fasta_string_found, file_path.name)
             
-            # --- AGGREGATION LOGIC ---
-            heavy_seqs = [c['Sequence'] for c in chains if 'heavy' in c['Sequence_Name'].lower()]
-            light_seqs = [c['Sequence'] for c in chains if 'light' in c['Sequence_Name'].lower()]
+            # --- AGGREGATION LOGIC (UPDATED FILTER) ---
+            # Updated these lines to include checks for "_h" and "_l" for H1/L1 conventions
+            heavy_seqs = [c['Sequence'] for c in chains if 'heavy' in c['Sequence_Name'].lower() or '_h' in c['Sequence_Name'].lower()]
+            light_seqs = [c['Sequence'] for c in chains if 'light' in c['Sequence_Name'].lower() or '_l' in c['Sequence_Name'].lower()]
 
             if folder_name == 'Whole_mAb':
                 # For a whole mAb, use 2 heavy and 2 light chains
@@ -191,6 +196,9 @@ def process_all_py_files(root_directory: Path):
                     'Source_File': file_path.name,
                     'Folder_Name': folder_name
                 })
+            else:
+                # This message will ideally no longer appear for emicizumab.py
+                print(f"    SKIPPED: {file_path.name} was skipped because no valid sequence was generated during aggregation.")
             # --- END AGGREGATION LOGIC ---
 
         except Exception as e:
@@ -210,37 +218,68 @@ def process_all_py_files(root_directory: Path):
             )
             results.append(features)
         except Exception as e:
-            print(f"    WARNING: Skipping {product_data['Name']}. Calculation error: {e}")
-            
+            print(f"    ERROR: Failed to calculate features for {product_data['Name']}. Error: {e}")
+
     return pd.DataFrame(results)
 
+
 # --- Execution ---
-if __name__ == '__main__':
-    
-    print("--- Starting ML-SASA Feature Extraction (Per Product) ---")
-    
-    # 1. Run the main processor
-    results_df = process_all_py_files(ROOT_DIR)
-    
-    if results_df.empty:
-        print("Feature calculation finished, but no valid data was generated.")
-        sys.exit(0)
-    
-    # 2. Final data preparation (Sort columns nicely)
-    # Define a logical order for the output columns
-    base_cols = ['Antibody_Name', 'Format_Folder', 'Source_File', 'Sequence_Length_Total_AA', 'pI', 'MW', 'Polar_Pct', 'GRAVY_Score', 'Avg_KD_Hydrophobicity', 'Max_KD_Hydrophobicity']
-    aa_pct_cols = [f'AA_{aa}_Pct' for aa in STANDARD_AAS]
-    all_cols = base_cols + aa_pct_cols
-    
-    results_df = results_df.reindex(columns=all_cols)
-    
-    # 3. Print a summary
-    print(f"\nSUCCESS: Processed {len(results_df)} antibodies.")
-    print("--- ML-SASA Feature Comparison Table Summary (First 5 Rows) ---")
-    # Use to_string() for better console formatting of wide tables
-    print(results_df.head().round(3).to_string()) 
-    
-    # 4. Save to CSV file
-    # Set float format globally to 3 decimal places for all numbers
-    results_df.to_csv(OUTPUT_FILE_PATH, index=False, float_format='%.3f')
-    print(f"\nFinal results saved to '{OUTPUT_FILE_PATH.name}'")
+if __name__ == "__main__":
+    # Ensure pandas displays all columns in the console output summary
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', 1000)
+
+    if ROOT_DIR:
+        print(f"--- Starting Feature Calculation in: {ROOT_DIR} ---")
+        df_features = process_all_py_files(ROOT_DIR)
+
+        if not df_features.empty:
+            # Round the *entire* DataFrame to 2 decimal places before saving/printing
+            df_features = df_features.round(2)
+
+            print(f"\nSUCCESS: Processed {len(df_features)} antibodies.")
+            print("\n" + "=" * 60)
+            print("ML-SASA Feature Comparison Table Summary (First 5 Rows)")
+            print("=" * 60)
+            print(df_features.head())
+            print("\n")
+            
+            # --- FINAL EXCEL WRITING LOGIC (With Filters, Widths, and Freeze) ---
+            # Save the results to the determined path as a normal Excel file first
+            df_features.to_excel(OUTPUT_FILE_PATH, index=False, engine='openpyxl')
+
+            # Use openpyxl to apply formatting after pandas writes the data
+            wb = load_workbook(OUTPUT_FILE_PATH)
+            ws = wb.active
+            
+            # FREEZE THE TOP ROW (FREEZE PANES ABOVE CELL A2)
+            ws.freeze_panes = 'A2'
+
+            # Apply Auto-filter to the header row (row index 1 in Excel)
+            # FIX applied here: Accessing shape elements by index correctly (0 for rows, 1 for columns)
+            max_row = df_features.shape[0] + 1
+            max_col = df_features.shape[1]
+            filter_range = f"A1:{ws.cell(row=max_row, column=max_col).coordinate}"
+            ws.auto_filter.ref = filter_range
+
+            # Automatically adjust column widths
+            for col_cells in ws.columns:
+                max_length = 0
+                column = col_cells[0].column_letter # FIX: Access letter from the first cell in the tuple
+                for cell in col_cells:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)
+                ws.column_dimensions[column].width = adjusted_width
+            
+            wb.save(OUTPUT_FILE_PATH)
+            # --- END FINAL EXCEL WRITING LOGIC ---
+
+            print(f"Final results saved to '{OUTPUT_FILE_PATH.name}' with filters, frozen header, and optimized column widths.")
+        else:
+            print("\nNo features calculated. DataFrame is empty.")
+    else:
+        print("Script failed to find a valid root directory for processing.")
