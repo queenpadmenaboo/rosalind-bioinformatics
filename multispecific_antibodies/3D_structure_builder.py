@@ -5,6 +5,8 @@ from pathlib import Path
 import importlib.util
 import re
 import warnings
+import logging
+logging.getLogger().setLevel(logging.ERROR)
 
 # Suppress warnings
 warnings.filterwarnings("ignore")
