@@ -23,7 +23,7 @@ runner = IgFoldRunner()
 def parse_fasta_string_to_pairs(fasta_string):
     chains_by_number = {}
     handle = StringIO(fasta_string)
-    for record in SeqIO.parse(handle, "fasta-blast"): 
+    for record in SeqIO.parse(handle, "fasta"): 
         seq_id = record.id
         seq = str(record.seq)
 
