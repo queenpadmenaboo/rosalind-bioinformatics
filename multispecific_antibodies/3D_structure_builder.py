@@ -79,15 +79,20 @@ def process_directory(base_dir, subfolders):
 
                 for i, sequences_dict in enumerate(paired_sequences_list):
                     pair_id = f"{antibody_name}_Pair_{i+1}"
-                    print(f"Predicting structure for {pair_id}...")
-
                     output_path = output_folder_path / f"{pair_id}.pdb"
+                    
+                    if output_path.exists():
+                        print(f"Skipping {pair_id} (already exists)", flush=True)
+                        continue
+                    
+                    print(f"Predicting structure for {pair_id}...", flush=True)
+
                     predicted_structure = runner.fold(
                         pdb_file=str(output_path),
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
                     )
-                    print(f"Saved {output_path}")
+                    print(f"Saved {output_path}", flush=True)
                     
 
             except Exception as e:
