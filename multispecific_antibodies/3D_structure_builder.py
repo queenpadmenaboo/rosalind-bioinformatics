@@ -25,7 +25,8 @@ runner = IgFoldRunner()
 def parse_fasta_string_to_pairs(fasta_string):
     chains_by_number = {}
     handle = StringIO(fasta_string)
-    for record in SeqIO.parse(handle, "fasta"):
+    # MINIMAL CHANGE 1: Use fasta-blast format to ignore comments/leading newlines
+    for record in SeqIO.parse(handle, "fasta-blast"): 
         seq_id = record.id
         seq = str(record.seq)
 
@@ -88,14 +89,20 @@ def process_directory(base_dir, subfolders):
                     pair_id = f"{antibody_name}_Pair_{i+1}"
                     print(f"Predicting structure for {pair_id}...")
 
+                    # MINIMAL CHANGE 2: Call .fold (not .predict) AND include pdb_file=None argument
                     predicted_structure = runner.fold(
                         pdb_file=None,
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
                     )
-                    output_path = output_folder_path / f"{pair_id}.pdb"
-                    predicted_structure.save(str(output_path))
-                    print(f"Saved {output_path}")
+                    
+                    # MINIMAL CHANGE 3: Add safety check to prevent NoneType crash
+                    if predicted_structure is not None:
+                        output_path = output_folder_path / f"{pair_id}.pdb"
+                        predicted_structure.save(str(output_path))
+                        print(f"Saved {output_path}")
+                    else:
+                        print(f"Prediction failed for {pair_id}, no structure returned by runner.fold().")
 
             except Exception as e:
                 print(f"Failed to process {file_path}: {e}")
@@ -104,4 +111,3 @@ def process_directory(base_dir, subfolders):
 if __name__ == "__main__":
     # Ensure your current working directory is correct when calling the script
     process_directory(base_dir=".", subfolders=FOLDERS_TO_PROCESS)
-
