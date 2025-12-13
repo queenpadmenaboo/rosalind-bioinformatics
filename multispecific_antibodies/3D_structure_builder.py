@@ -15,7 +15,7 @@ from Bio import SeqIO
 torch.serialization.add_safe_globals([BertConfig, BertTokenizer])
 
 # --- Configuration Variables ---
-USE_REFINEMENT = True
+USE_REFINEMENT = False
 OUTPUT_BASE_DIR = Path("PDB_Output_Files")
 FOLDERS_TO_PROCESS = ["Bispecific_mAb", "Bispecific_scFv", "Other_Formats", "Whole_mAb"]
 
