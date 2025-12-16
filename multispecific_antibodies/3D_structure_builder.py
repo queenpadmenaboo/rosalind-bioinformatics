@@ -104,6 +104,7 @@ def process_directory(base_dir, subfolders):
                         pdb_file=str(output_path),
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
+                        do_renum=False,
                     )
                     print(f"Saved {output_path}", flush=True)
                     total_processed += 1
