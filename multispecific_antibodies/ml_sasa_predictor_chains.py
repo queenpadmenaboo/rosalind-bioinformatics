@@ -177,8 +177,8 @@ def process_all_py_files(root_directory: Path):
             # Parse the FASTA string into individual chains
             chains = parse_fasta_string(fasta_string_found, file_path.name)
             
-            # --- AGGREGATION LOGIC ---
-            # Identify chains
+            # --- ANTIBODY ASSEMBLY LOGIC ---
+            # Constructing the full protein complex (H + L) for biophysical profiling
             heavy_seqs = [c['Sequence'] for c in chains if 'heavy' in c['Sequence_Name'].lower() or '_h' in c['Sequence_Name'].lower()]
             light_seqs = [c['Sequence'] for c in chains if 'light' in c['Sequence_Name'].lower() or '_l' in c['Sequence_Name'].lower()]
 
@@ -187,13 +187,12 @@ def process_all_py_files(root_directory: Path):
             num_l = len(light_seqs)
 
             if folder_name == 'Whole_mAb':
-                # MATH for a whole mAb (H1 + L1) * 2 = H1 + H1 + L1 + L1 (2 identical Heavy and Light chains)
-                # This doubles the length and MW to ~150kDa
+                # Standard IgG consists of two identical Heavy and 2 identical Light chains = (H1 + L1) * 2 = H1 + H1 + L1 + L1
                 full_sequence = "".join(heavy_seqs * 2 + light_seqs * 2)
                 units_count = f"{num_h}H/{num_l}L (Doubled)"
             else:
-                # MATH for all other formats, simply combine all unique chains found
-                full_sequence = "".join(heavy_seqs) + "".join(light_seqs)
+                # For Bispecifics or other formats, simply combine all unique chains provided
+                full_sequence = "".join(heavy_seqs + light_seqs)
                 units_count = f"{num_h}H/{num_l}L"
                 
             if full_sequence:
