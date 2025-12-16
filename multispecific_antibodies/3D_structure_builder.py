@@ -30,7 +30,7 @@ runner = IgFoldRunner()
 print("IgFold ready.\n", flush=True)
 
 def parse_fasta_string_to_pairs(fasta_string):
-    chains_by_number = {}
+    chains_by_number = {}       # if python sees _1: it creates a "Bin 1"; puts the Heavy chain in Bin 1["H"] and the Light chain in Bin 1["L"].
     handle = StringIO(fasta_string)
     for record in SeqIO.parse(handle, "fasta"):
         seq_id = record.id
@@ -48,11 +48,19 @@ def parse_fasta_string_to_pairs(fasta_string):
         elif is_light:
             chains_by_number.setdefault(pair_num, {})["L"] = seq
 
-    # Return only complete pairs
-    return [chains for chains in chains_by_number.values() if "H" in chains and "L" in chains]
+    # Return only valid pairs
+    return [chains for chains in chains_by_number.values() if "H" in chains and "L" in chains]  # Bin 1: Does it have an H and L? Bin 2: Does it have an H and an L? # of "Valid Pairs" is determined
 
 def process_directory(base_dir, subfolders):
     base_path = Path(base_dir)
+
+    # Dictionary of notes for each folder type
+    FOLDER_NOTES = {
+        "Bispecific_mAb": "NOTE: Expecting 2 different H/L pairs (Pair 1 and Pair 2) for asymmetric arms.",
+        "Bispecific_scFv": "NOTE: Processing single-chain variable fragments; pairing depends on FASTA IDs.",
+        "Other_Formats": "NOTE: Processing non-standard antibody formats.",
+        "Whole_mAb": "NOTE: Standard IgG. Expecting 1 unique H/L pair. (Identity math: 1 model = 2 identical arms)."
+    }
 
     for folder_name in subfolders:
         output_folder_path = OUTPUT_BASE_DIR / folder_name
@@ -67,8 +75,14 @@ def process_directory(base_dir, subfolders):
             print(f"Input folder not found: {folder_path}, skipping.", flush=True)
             continue
 
+        # --- Print Folder Note ---
+        note = FOLDER_NOTES.get(folder_name, "Processing files...")
+        print(f"\n{'='*60}")
+        print(f"FOLDER: {folder_name}")
+        print(f"{note}")
+        print(f"{'='*60}\n", flush=True)
+
         antibody_files = glob.glob(str(folder_path / "*.py"))
-        print(f"\n=== Processing {folder_name}: {len(antibody_files)} files ===\n", flush=True)
 
         for file_path in antibody_files:
             file_path = Path(file_path)
@@ -104,7 +118,7 @@ def process_directory(base_dir, subfolders):
                         pdb_file=str(output_path),
                         sequences=sequences_dict,
                         do_refine=USE_REFINEMENT,
-                        do_renum=False,
+                        do_renum=False,     # Keep this False for Windows compatibility
                     )
                     print(f"Saved {output_path}", flush=True)
                     total_processed += 1
