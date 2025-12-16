@@ -177,51 +177,74 @@ def process_all_py_files(root_directory: Path):
             # Parse the FASTA string into individual chains
             chains = parse_fasta_string(fasta_string_found, file_path.name)
             
-            # --- AGGREGATION LOGIC (UPDATED FILTER) ---
-            # Updated these lines to include checks for "_h" and "_l" for H1/L1 conventions
+            # --- AGGREGATION LOGIC ---
+            # Identify chains
             heavy_seqs = [c['Sequence'] for c in chains if 'heavy' in c['Sequence_Name'].lower() or '_h' in c['Sequence_Name'].lower()]
             light_seqs = [c['Sequence'] for c in chains if 'light' in c['Sequence_Name'].lower() or '_l' in c['Sequence_Name'].lower()]
 
+            # Define counts for the Math
+            num_h = len(heavy_seqs)
+            num_l = len(light_seqs)
+
             if folder_name == 'Whole_mAb':
-                # For a whole mAb, use 2 heavy and 2 light chains
-                full_sequence = "".join(heavy_seqs * 2 + light_seqs * 2) 
+                # MATH for a whole mAb (H1 + L1) * 2 = H1 + H1 + L1 + L1 (2 identical Heavy and Light chains)
+                # This doubles the length and MW to ~150kDa
+                full_sequence = "".join(heavy_seqs * 2 + light_seqs * 2)
+                units_count = f"{num_h}H/{num_l}L (Doubled)"
             else:
-                # For all other formats, simply concatenate the chains found once
-                full_sequence = ''.join(heavy_seqs) + ''.join(light_seqs)
+                # MATH for all other formats, simply combine all unique chains found
+                full_sequence = "".join(heavy_seqs) + "".join(light_seqs)
+                units_count = f"{num_h}H/{num_l}L"
                 
             if full_sequence:
                 all_antibody_products.append({
                     'Name': antibody_name,
                     'Sequence': full_sequence,
                     'Source_File': file_path.name,
-                    'Folder_Name': folder_name
+                    'Folder_Name': folder_name,
+                    'Chain_Count': units_count
                 })
             else:
-                # This message will ideally no longer appear for emicizumab.py
-                print(f"    SKIPPED: {file_path.name} was skipped because no valid sequence was generated during aggregation.")
-            # --- END AGGREGATION LOGIC ---
+                print(f"    SKIPPED: {file_path.name} (No valid heavy/light chain sequences found)")
+            
 
         except Exception as e:
-            print(f"    ERROR: Failed to load/execute {file_path.name}. Error: {e}")
+            print(f"    ERROR processing {file_path.name}: {e}")
     
-    print(f"Total {len(all_antibody_products)} full antibody products extracted for feature calculation.")
+    # --- Calculate Features for all aggregated products ---
+    final_data = []
+    print(f"Aggregation complete. Calculating features for {len(all_antibody_products)} products...")
 
-    # Process all aggregated sequences
-    results = []
-    for product_data in all_antibody_products:
+    for product in all_antibody_products:
         try:
             features = calculate_sasa_features(
-                product_data['Name'], 
-                product_data['Sequence'], 
-                product_data['Source_File'],
-                product_data['Folder_Name']
+                product['Name'], 
+                product['Sequence'], 
+                product['Source_File'],
+                product['Folder_Name']
             )
-            results.append(features)
-        except Exception as e:
-            print(f"    ERROR: Failed to calculate features for {product_data['Name']}. Error: {e}")
+            # Add the verification column to the features dictionary
+            features['Chains_Count'] = product['Chains_Count']
+            final_data.append(features)
 
-    return pd.DataFrame(results)
+    # --- Export to Excel ---
+    df = pd.DataFrame(final_data)
+    
+    if not df.empty:
+        # Reorder columns to put metadata first
+        cols = ['Antibody_Name', 'Format_Folder', 'Chains_Count', 'Source_File', 'Sequence_Length_Total_AA', 'MW', 'pI', 'GRAVY_Score']
+        remaining_cols = [c for c in df.columns if c not in cols]
+        df = df[cols + remaining_cols]
 
+        df.to_excel(OUTPUT_FILE_PATH, index=False, engine='openpyxl')
+        print(f"\nSUCCESS: Results saved to {OUTPUT_FILE_PATH}")
+    else:
+        print("\nNo data to save.")
+
+    return df
+
+if __name__ == "__main__":
+    process_all_py_files(ROOT_DIR)
 
 # --- Execution ---
 if __name__ == "__main__":
