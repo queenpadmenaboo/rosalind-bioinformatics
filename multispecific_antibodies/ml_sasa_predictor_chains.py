@@ -202,12 +202,11 @@ def process_all_py_files(root_directory: Path):
                     'Sequence': full_sequence,
                     'Source_File': file_path.name,
                     'Folder_Name': folder_name,
-                    'Chain_Count': units_count
+                    'Chains_Count': units_count
                 })
             else:
                 print(f"    SKIPPED: {file_path.name} (No valid heavy/light chain sequences found)")
             
-
         except Exception as e:
             print(f"    ERROR processing {file_path.name}: {e}")
     
@@ -216,16 +215,15 @@ def process_all_py_files(root_directory: Path):
     print(f"Aggregation complete. Calculating features for {len(all_antibody_products)} products...")
 
     for product in all_antibody_products:
-        try:
-            features = calculate_sasa_features(
-                product['Name'], 
-                product['Sequence'], 
-                product['Source_File'],
-                product['Folder_Name']
-            )
+        features = calculate_sasa_features(
+            product['Name'], 
+            product['Sequence'], 
+            product['Source_File'],
+            product['Folder_Name']
+        )
             # Add the verification column to the features dictionary
-            features['Chains_Count'] = product['Chains_Count']
-            final_data.append(features)
+        features['Chains_Count'] = product['Chains_Count']
+        final_data.append(features)
 
     # --- Export to Excel ---
     df = pd.DataFrame(final_data)
