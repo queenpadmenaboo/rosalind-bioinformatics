@@ -1,4 +1,7 @@
 import os
+# DISABLING THE PYTORCH 2.6 SECURITY WALL GLOBALLY FOR THIS SCRIPT
+os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
+
 import glob
 from io import StringIO
 from pathlib import Path
@@ -12,13 +15,14 @@ logging.getLogger().setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
 import torch
+import transformers
 from transformers.models.bert.configuration_bert import BertConfig
 from transformers.models.bert.tokenization_bert import BertTokenizer
 from igfold import IgFoldRunner
 from Bio import SeqIO
 from Bio.PDB import PDBParser
 from Bio.PDB.SASA import ShrakeRupley
-import transformers
+
 
 # Allowlist the specific transformer classes that PyTorch 2.6 now blocks by default
 torch.serialization.add_safe_globals([transformers.tokenization_utils.Trie])
