@@ -118,11 +118,11 @@ def process_directory(base_dir, subfolders):
                     pair_id = f"{antibody_name}_Pair_{i+1}"
                     output_path = output_folder_path / f"{pair_id}.pdb"
                     
-                    if output_path.exists():
+                    if output_path.with_suffix(".sasa.txt").exists():
                         print(f"Skipping {pair_id} (already exists)", flush=True)
                         total_skipped += 1
                         continue
-                    
+
                     print(f"Predicting structure for {pair_id}...", flush=True)
 
                     runner.fold(
