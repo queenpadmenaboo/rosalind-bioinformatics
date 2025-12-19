@@ -18,6 +18,10 @@ from igfold import IgFoldRunner
 from Bio import SeqIO
 from Bio.PDB import PDBParser
 from Bio.PDB.SASA import ShrakeRupley
+import transformers
+
+# Allowlist the specific transformer classes that PyTorch 2.6 now blocks by default
+torch.serialization.add_safe_globals([transformers.tokenization_utils.Trie])
 
 
 # Allowlist BertConfig for safe checkpoint loading (IgFold / AntiBERTy)
