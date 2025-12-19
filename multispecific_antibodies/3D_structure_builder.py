@@ -16,6 +16,9 @@ from transformers.models.bert.configuration_bert import BertConfig
 from transformers.models.bert.tokenization_bert import BertTokenizer
 from igfold import IgFoldRunner
 from Bio import SeqIO
+from Bio.PDB import PDBParser
+from Bio.PDB.SASA import ShrakeRupley
+
 
 # Allowlist BertConfig for safe checkpoint loading (IgFold / AntiBERTy)
 torch.serialization.add_safe_globals([BertConfig, BertTokenizer])
@@ -121,6 +124,25 @@ def process_directory(base_dir, subfolders):
                         do_renum=False,     # Keep this False for Windows compatibility
                     )
                     print(f"Saved {output_path}", flush=True)
+                    
+
+                    try:
+                        p = PDBParser(QUIET=True)
+                        struct = p.get_structure(pair_id, str(output_path))
+                        
+                        sr = ShrakeRupley()
+                        sr.compute(struct, level="S") # "S" for total structure SASA
+    
+                        total_sasa = struct.sasa
+                        print(f"SASA for {pair_id}: {total_sasa:.2f} Å²", flush=True)
+    
+                        # Optional: Save SASA to a text file next to the PDB
+                        with open(output_path.with_suffix(".sasa.txt"), "w") as f:
+                            f.write(f"Total SASA: {total_sasa:.2f} Å²\n")
+        
+                    except Exception as sasa_error:
+                        print(f"SASA calculation failed for {pair_id}: {sasa_error}", flush=True)
+    
                     total_processed += 1
 
             except Exception as e:
