@@ -41,7 +41,7 @@ def load_structural_sasa():
                     if numbers:
                         sasa_value = float(numbers[0])
                     else:
-                        print(f"⚠ Warning: No SASA value in {path_obj.name}")
+                        print(f"Warning: No SASA value in {path_obj.name}")
                         continue
                 
                 sasa_records.append({
@@ -50,10 +50,10 @@ def load_structural_sasa():
                     'Structural_SASA_Å2': sasa_value,
                     'Source_File': str(path_obj.name)
                 })
-                print(f"  ✓ {antibody_name}: {sasa_value:.2f} Ų")
+                print(f"{antibody_name}: {sasa_value:.2f} Ų")
                 
         except Exception as e:
-            print(f"✗ Error reading {path_obj.name}: {e}")
+            print(f"Error reading {path_obj.name}: {e}")
             
     return pd.DataFrame(sasa_records)
 
@@ -75,7 +75,7 @@ def load_ml_predictions():
     print(f"Found {len(ml_files)} potential ML files")
     
     if not ml_files:
-        print("⚠ No ML prediction files found")
+        print("No ML prediction files found")
         return pd.DataFrame()
     
     all_dfs = []
@@ -86,10 +86,10 @@ def load_ml_predictions():
             else:
                 df = pd.read_excel(file_path)
             
-            print(f"  ✓ Loaded: {Path(file_path).name} ({len(df)} rows)")
+            print(f" Loaded: {Path(file_path).name} ({len(df)} rows)")
             all_dfs.append(df)
         except Exception as e:
-            print(f"✗ Error reading {Path(file_path).name}: {e}")
+            print(f" Error reading {Path(file_path).name}: {e}")
     
     if all_dfs:
         df_ml = pd.concat(all_dfs, ignore_index=True)
@@ -152,18 +152,18 @@ def run_comparison():
     
     # 1. Load Sequence Data
     if not SEQUENCE_EXCEL.exists():
-        print(f"✗ ERROR: Cannot find {SEQUENCE_EXCEL}")
+        print(f" ERROR: Cannot find {SEQUENCE_EXCEL}")
         return
     
     df_seq = pd.read_excel(SEQUENCE_EXCEL)
-    print(f"\n✓ Loaded {len(df_seq)} sequence entries")
+    print(f"\n Loaded {len(df_seq)} sequence entries")
     print(f"  Columns: {', '.join(df_seq.columns[:5])}...")
     
     # 2. Load Structural Data
     df_struct = load_structural_sasa()
     
     if df_struct.empty:
-        print("\n⚠ WARNING: No structural SASA data found!")
+        print("\n WARNING: No structural SASA data found!")
         print("  Check that 3D_structure_builder.py has run successfully")
     else:
         print(f"\n✓ Loaded {len(df_struct)} structural SASA values")
@@ -172,7 +172,7 @@ def run_comparison():
     df_ml = load_ml_predictions()
     
     if df_ml.empty:
-        print("\n⚠ WARNING: No ML prediction data found!")
+        print("\n WARNING: No ML prediction data found!")
         print("  Check that ml_sasa_predictor_chains.py has run successfully")
     
     # 4. Merge Everything
@@ -233,7 +233,7 @@ def run_comparison():
         ml_count = df_final[ml_cols[0]].notna().sum()
         print(f"With ML predictions: {ml_count}")
     
-    print(f"\n✓ Report saved: {FINAL_REPORT_PATH}")
+    print(f"\n Report saved: {FINAL_REPORT_PATH}")
     print(f"{'='*60}\n")
 
 if __name__ == "__main__":
