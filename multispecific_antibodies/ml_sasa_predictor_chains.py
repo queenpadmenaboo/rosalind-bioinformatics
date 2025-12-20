@@ -11,20 +11,18 @@ REQUIRES:
 """
 
 import pandas as pd
-# Added this line to format how all Pandas DataFrames display floats (2 decimal places)
-pd.options.display.float_format = '{:.2f}'.format
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from pathlib import Path
 import warnings
 import re
 import importlib.util 
 from Bio import BiopythonDeprecationWarning
-import sys
 import os
-import numpy as np
 from Bio.SeqUtils import ProtParamData # For KD scale access
-from openpyxl import load_workbook 
+from openpyxl import load_workbook
 
+# Display formatting
+pd.options.display.float_format = '{:.2f}'.format
 
 # --- Dynamic Path Resolution ---
 
@@ -40,13 +38,9 @@ else:
     ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), None)
 
 if ROOT_DIR is None:
-    raise FileNotFoundError(
-        "No valid ROOT_DIR found. Set ROOT_DIR environment variable or ensure one of the candidate paths exists."
-    )
+    raise FileNotFoundError("No valid ROOT_DIR found. Check paths or environment variable.")
 
-# Changed output file extension to .xlsx
-OUTPUT_FILENAME = "all_antibody_sasa_chains.xlsx" 
-OUTPUT_FILE_PATH = ROOT_DIR / OUTPUT_FILENAME
+OUTPUT_FILE_PATH = ROOT_DIR / "all_antibody_sasa_chains.xlsx"
 
 EXCLUDE_FILES = {
     'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
@@ -77,12 +71,9 @@ def parse_fasta_string(fasta_string, source_file_name):
     pattern = re.compile(r'>([^\n]+)\n([A-Z\n]+)')
     
     for match in pattern.finditer(fasta_string):
-        name = match.group(1).strip()
-        sequence = match.group(2).replace('\n', '').strip()
-        
         sequences_list.append({
-            'Sequence_Name': name,
-            'Sequence': sequence,
+            'Sequence_Name': match.group(1).strip(),
+            'Sequence': match.group(2).replace('\n', '').strip(),
             'Source_File': source_file_name
         })
     return sequences_list
@@ -95,9 +86,8 @@ def calculate_sasa_features(name, sequence, source_file, folder_name):
 
     # Define which single-letter codes are "Polar" (hydrophilic)
     polar_residues = ['Q', 'N', 'S', 'T', 'H', 'K', 'R', 'E', 'D', 'Y', 'C']
-    polar_count = sum(sequence.count(res) for res in polar_residues)
+    polar_percentage = sum(sequence.count(res) for res in polar_residues) / len(sequence)
     
-    polar_percentage = (polar_count / len(sequence)) 
     composition = X.amino_acids_percent 
     
     # --- Hydrophobicity Feature Calculations ---
@@ -125,21 +115,13 @@ def calculate_sasa_features(name, sequence, source_file, folder_name):
     
     # Add individual percentages for all standard AAs
     for aa in STANDARD_AAS:
-         features[f'AA_{aa}_Pct'] = composition.get(aa, 0)
-         
+         features[f'AA_{aa}_Pct'] = composition.get(aa, 0) 
     return features
-
 
 # --- Main Processing Loop: Reads Python Variables from Files ---
 def process_all_py_files(root_directory: Path):
-    """
-    Scans your specified folder structure, finds the data files, 
-    aggregates sequences by antibody product, and calculates features per product.
-    """
-    
+    """Aggregates sequences on 1H/1L scale and prepares final data."""
     py_files = list(root_directory.rglob("*.py"))
-    
-    # Filter out files in the main folder itself, focusing only on subfolders
     antibody_files = [f for f in py_files if f.parent.resolve() != root_directory.resolve() and f.name not in EXCLUDE_FILES]
     
     if not antibody_files:
@@ -151,28 +133,19 @@ def process_all_py_files(root_directory: Path):
     all_antibody_products = [] # This will store the single combined sequences
     
     for file_path in antibody_files:
-        module_name = file_path.stem
-        folder_name = file_path.parent.name # e.g., 'Whole_mAb'
-        antibody_name = file_path.stem      # e.g., 'acimtamig'
-
         try:
-            # Safely load the Python file as a module
-            spec = importlib.util.spec_from_file_location(module_name, file_path)
+            spec = importlib.util.spec_from_file_location(file_path.stem, file_path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             
             fasta_string_found = None
-            
-            # Iterate through all defined objects to find the sequence string variable
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
-                if isinstance(attr, str) and attr.strip().startswith('>') and '\n>' in attr:
+                if isinstance(attr, str) and attr.strip().startswith('>'):
                     fasta_string_found = attr
                     break 
 
-            if not fasta_string_found:
-                 print(f"    WARNING: No valid sequence string found in {file_path.name}.")
-                 continue
+            if not fasta_string_found: continue
             
             # Parse the FASTA string into individual chains
             chains = parse_fasta_string(fasta_string_found, file_path.name)
@@ -182,124 +155,64 @@ def process_all_py_files(root_directory: Path):
             heavy_seqs = [c['Sequence'] for c in chains if 'heavy' in c['Sequence_Name'].lower() or '_h' in c['Sequence_Name'].lower()]
             light_seqs = [c['Sequence'] for c in chains if 'light' in c['Sequence_Name'].lower() or '_l' in c['Sequence_Name'].lower()]
 
-            # Define counts for the Math
-            num_h = len(heavy_seqs)
-            num_l = len(light_seqs)
-
-            if folder_name == 'Whole_mAb':
-                # Standard IgG consists of two identical Heavy and 2 identical Light chains = (H1 + L1) * 2 = H1 + H1 + L1 + L1
-                full_sequence = "".join(heavy_seqs * 2 + light_seqs * 2)
-                units_count = f"{num_h}H/{num_l}L (Doubled)"
+            if heavy_seqs and light_seqs:
+                # Use exactly 1H and 1L to match 3D_structure_builder Fv output
+                full_sequence = heavy_seqs[0] + light_seqs[0]
+                units_count = "1H/1L (Fv Match)"
             else:
-                # For Bispecifics or other formats, simply combine all unique chains provided
                 full_sequence = "".join(heavy_seqs + light_seqs)
-                units_count = f"{num_h}H/{num_l}L"
-                
+                units_count = f"{len(heavy_seqs)}H/{len(light_seqs)}L"
+
             if full_sequence:
                 all_antibody_products.append({
-                    'Name': antibody_name,
+                    'Name': file_path.stem,
                     'Sequence': full_sequence,
                     'Source_File': file_path.name,
-                    'Folder_Name': folder_name,
+                    'Folder_Name': file_path.parent.name,
                     'Chains_Count': units_count
                 })
-            else:
-                print(f"    SKIPPED: {file_path.name} (No valid heavy/light chain sequences found)")
-            
-        except Exception as e:
-            print(f"    ERROR processing {file_path.name}: {e}")
-    
-    # --- Calculate Features for all aggregated products ---
-    final_data = []
-    print(f"Aggregation complete. Calculating features for {len(all_antibody_products)} products...")
 
+        except Exception as e:
+            print(f"Error in {file_path.name}: {e}")
+    
+    final_data = []
     for product in all_antibody_products:
-        features = calculate_sasa_features(
+        feat = calculate_sasa_features(
             product['Name'], 
             product['Sequence'], 
             product['Source_File'],
             product['Folder_Name']
         )
-            # Add the verification column to the features dictionary
-        features['Chains_Count'] = product['Chains_Count']
-        final_data.append(features)
+        # Add the verification column to the features dictionary
+        feat['Chains_Count'] = product['Chains_Count']
+        final_data.append(feat)
 
     # --- Export to Excel ---
     df = pd.DataFrame(final_data)
-    
     if not df.empty:
         # Reorder columns to put metadata first
         cols = ['Antibody_Name', 'Format_Folder', 'Chains_Count', 'Source_File', 'Sequence_Length_Total_AA', 'MW', 'pI', 'GRAVY_Score']
-        remaining_cols = [c for c in df.columns if c not in cols]
-        df = df[cols + remaining_cols]
+        df = df[cols + [c for c in df.columns if c not in cols]]
+        df = df.round(2)
 
         df.to_excel(OUTPUT_FILE_PATH, index=False, engine='openpyxl')
-        print(f"\nSUCCESS: Results saved to {OUTPUT_FILE_PATH}")
-    else:
-        print("\nNo data to save.")
+        wb = load_workbook(OUTPUT_FILE_PATH)
+        ws = wb.active
+        ws.freeze_panes = 'A2'
 
+        max_row = len(df) + 1
+        max_col = len(df.columns)
+        last_cell = ws.cell(row=max_row, column=max_col).coordinate
+        ws.auto_filter.ref = f"A1:{last_cell}
+        
+        for col_cells in ws.columns:
+            column = col_cells[0].column_letter
+            max_len = max(len(str(cell.value or "")) for cell in col_cells)
+            ws.column_dimensions[column].width = max_len + 2
+        
+        wb.save(OUTPUT_FILE_PATH)
+        print(f"SUCCESS: {len(df)} antibodies processed. Results saved to {OUTPUT_FILE_PATH}")
     return df
 
 if __name__ == "__main__":
     process_all_py_files(ROOT_DIR)
-
-# --- Execution ---
-if __name__ == "__main__":
-    # Ensure pandas displays all columns in the console output summary
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', 1000)
-
-    if ROOT_DIR:
-        print(f"--- Starting Feature Calculation in: {ROOT_DIR} ---")
-        df_features = process_all_py_files(ROOT_DIR)
-
-        if not df_features.empty:
-            # Round the *entire* DataFrame to 2 decimal places before saving/printing
-            df_features = df_features.round(2)
-
-            print(f"\nSUCCESS: Processed {len(df_features)} antibodies.")
-            print("\n" + "=" * 60)
-            print("ML-SASA Feature Comparison Table Summary (First 5 Rows)")
-            print("=" * 60)
-            print(df_features.head())
-            print("\n")
-            
-            # --- FINAL EXCEL WRITING LOGIC (With Filters, Widths, and Freeze) ---
-            # Save the results to the determined path as a normal Excel file first
-            df_features.to_excel(OUTPUT_FILE_PATH, index=False, engine='openpyxl')
-
-            # Use openpyxl to apply formatting after pandas writes the data
-            wb = load_workbook(OUTPUT_FILE_PATH)
-            ws = wb.active
-            
-            # FREEZE THE TOP ROW (FREEZE PANES ABOVE CELL A2)
-            ws.freeze_panes = 'A2'
-
-            # Apply Auto-filter to the header row (row index 1 in Excel)
-            # FIX applied here: Accessing shape elements by index correctly (0 for rows, 1 for columns)
-            max_row = df_features.shape[0] + 1
-            max_col = df_features.shape[1]
-            filter_range = f"A1:{ws.cell(row=max_row, column=max_col).coordinate}"
-            ws.auto_filter.ref = filter_range
-
-            # Automatically adjust column widths
-            for col_cells in ws.columns:
-                max_length = 0
-                column = col_cells[0].column_letter # FIX: Access letter from the first cell in the tuple
-                for cell in col_cells:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = (max_length + 2)
-                ws.column_dimensions[column].width = adjusted_width
-            
-            wb.save(OUTPUT_FILE_PATH)
-            # --- END FINAL EXCEL WRITING LOGIC ---
-
-            print(f"Final results saved to '{OUTPUT_FILE_PATH.name}' with filters, frozen header, and optimized column widths.")
-        else:
-            print("\nNo features calculated. DataFrame is empty.")
-    else:
-        print("Script failed to find a valid root directory for processing.")
