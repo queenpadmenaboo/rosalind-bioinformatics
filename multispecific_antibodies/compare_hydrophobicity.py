@@ -86,7 +86,7 @@ def load_ml_predictions():
             else:
                 df = pd.read_excel(file_path)
             
-            print(f" Loaded: {Path(file_path).name} ({len(df)} rows)")
+            print(f"Loaded: {Path(file_path).name} ({len(df)} rows)")
             all_dfs.append(df)
         except Exception as e:
             print(f" Error reading {Path(file_path).name}: {e}")
@@ -157,7 +157,7 @@ def run_comparison():
     
     df_seq = pd.read_excel(SEQUENCE_EXCEL)
     print(f"\n Loaded {len(df_seq)} sequence entries")
-    print(f"  Columns: {', '.join(df_seq.columns[:5])}...")
+    print(f"Columns: {', '.join(df_seq.columns[:5])}...")
     
     # 2. Load Structural Data
     df_struct = load_structural_sasa()
@@ -166,7 +166,7 @@ def run_comparison():
         print("\n WARNING: No structural SASA data found!")
         print("  Check that 3D_structure_builder.py has run successfully")
     else:
-        print(f"\n✓ Loaded {len(df_struct)} structural SASA values")
+        print(f"\n Loaded {len(df_struct)} structural SASA values")
     
     # 3. Load ML Predictions
     df_ml = load_ml_predictions()
@@ -185,7 +185,7 @@ def run_comparison():
             on="Antibody_Name", 
             how="left"
         )
-        print(f"✓ Merged structural data")
+        print(f" Merged structural data")
     
     if not df_ml.empty:
         df_final = pd.merge(
@@ -195,7 +195,7 @@ def run_comparison():
             how="left",
             suffixes=('', '_ML')
         )
-        print(f"✓ Merged ML prediction data")
+        print(f" Merged ML prediction data")
     
     # 5. Calculate Comparison Metrics
     if not df_struct.empty and not df_ml.empty:
