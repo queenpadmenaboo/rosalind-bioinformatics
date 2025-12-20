@@ -203,7 +203,7 @@ def process_all_py_files(root_directory: Path):
         max_row = len(df) + 1
         max_col = len(df.columns)
         last_cell = ws.cell(row=max_row, column=max_col).coordinate
-        ws.auto_filter.ref = f"A1:{last_cell}
+        ws.auto_filter.ref = f"A1:{last_cell}"
         
         for col_cells in ws.columns:
             column = col_cells[0].column_letter
