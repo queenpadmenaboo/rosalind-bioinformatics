@@ -38,20 +38,20 @@ import pandas as pd
 import string
 import os
 
-# --- Path Configuration (Dynamic Root Finding) ---
-CANDIDATE_ROOTS = [
-    Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies"),
-    Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"),
-]
+# ==========================================================================================
+# --- Path Configuration (TOGGLE BETWEEN PROJECT AND SHADOW) ---
+# ==========================================================================================
 
-env = os.environ.get("ROOT_DIR")
-if env:
-    ROOT_DIR = Path(env).expanduser().resolve()
-else:
-    ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), None)
+# --- OPTION A: PROJECT MODE (Your Designs) ---
+# ROOT_DIR = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
 
-if ROOT_DIR is None:
-    raise FileNotFoundError("No valid ROOT_DIR found. Check candidate paths.")
+# --- OPTION B: SHADOW MODE (The 137 PNAS Benchmarks) ---
+ROOT_DIR = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies\shadow_benchmarks")
+
+# ==========================================================================================
+
+if not ROOT_DIR.exists():
+    raise FileNotFoundError(f"No valid ROOT_DIR found at {ROOT_DIR}")
 
 # --- Project Specific Configuration ---
 CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
@@ -63,7 +63,8 @@ EXCLUDE_FILES = {
     'therasabdab_analyze_formats.py', 'calculate_features.py',
     'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
     'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
-    '3D_structure_builder.py', 'antibody_diagnostic_tool.py'
+    '3D_structure_builder.py', 'antibody_diagnostic_tool.py', 'build_pnas_shadow.py',
+    'recover_truth_engine.py', 'merge_truth.py'
 }
 
 STANDARD_AAS = sorted("ACDEFGHIKLMNPQRSTVWY")
@@ -126,7 +127,7 @@ def analyze_sequence_features(sequence: str) -> dict:
 
 def main():
     print("=" * 75)
-    print("ANTIBODY FEATURE & VISCOSITY CALCULATION (SMART PARSING)")
+    print(f"ANTIBODY FEATURE & VISCOSITY CALCULATION - TARGET: {ROOT_DIR.name}")
     print("=" * 75)
     
     results = []
@@ -136,6 +137,7 @@ def main():
         if not folder_path.exists():
             continue
             
+        print(f"Processing folder: {folder}")
         for py_file in folder_path.glob('*.py'):
             if py_file.name in EXCLUDE_FILES:
                 continue
@@ -145,11 +147,9 @@ def main():
                 if not sequences:
                     continue
 
-                # SMART KEYWORD MATCHING (Fixes Aducanumab/Emicizumab)
                 h_seqs = [s for h, s in sequences.items() if any(k in h.lower() for k in ['heavy', 'vh', '_h', 'chain a'])]
                 l_seqs = [s for h, s in sequences.items() if any(k in h.lower() for k in ['light', 'vl', '_l', 'chain b'])]
 
-                # FALLBACK: If headers are ambiguous (e.g., >Emicizumab)
                 if not h_seqs and not l_seqs:
                     all_seqs = list(sequences.values())
                     if len(all_seqs) >= 2:
@@ -157,7 +157,6 @@ def main():
                     elif len(all_seqs) == 1:
                         h_seqs, l_seqs = [all_seqs[0]], []
 
-                # ASSEMBLY LOGIC
                 if folder == 'Whole_mAb':
                     if not h_seqs or not l_seqs:
                         continue
@@ -178,39 +177,32 @@ def main():
                     }
                     data.update(features)
                     results.append(data)
-            except Exception:
+            except Exception as e:
+                print(f"Skipping {py_file.name} due to error: {e}")
                 continue
     
     if results:
         df = pd.DataFrame(results)
         output_file_path = ROOT_DIR / 'sequence_features.xlsx'
-        writer = pd.ExcelWriter(output_file_path, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='Antibody Features', index=False)
         
-        workbook  = writer.book
-        worksheet = writer.sheets['Antibody Features']
-        
-        # Formatting & Styling
-        high_risk_format = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
-        
-        # 1. FREEZE TOP ROW (Headers)
-        worksheet.freeze_panes(1, 0)
-        
-        # 2. ADD FILTER DROPDOWNS
-        worksheet.autofilter(0, 0, len(df), len(df.columns) - 1)
-        
-        # 3. AUTO COLUMN WIDTH LOGIC
-        for i, col in enumerate(df.columns):
-            max_len = max(df[col].astype(str).map(len).max(), len(col)) + 4 
-            worksheet.set_column(i, i, max_len)
+        with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name='Antibody Features', index=False)
+            workbook  = writer.book
+            worksheet = writer.sheets['Antibody Features']
+            
+            high_risk_format = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
+            worksheet.freeze_panes(1, 0)
+            worksheet.autofilter(0, 0, len(df), len(df.columns) - 1)
+            
+            for i, col in enumerate(df.columns):
+                max_len = max(df[col].astype(str).map(len).max(), len(col)) + 4 
+                worksheet.set_column(i, i, max_len)
 
-        # 4. CONDITIONAL HIGHLIGHTING
-        risk_col_idx = df.columns.get_loc('viscosity_risk')
-        worksheet.conditional_format(1, risk_col_idx, len(df), risk_col_idx, {
-            'type': 'text', 'criteria': 'containing', 'value': 'High', 'format': high_risk_format
-        })
+            risk_col_idx = df.columns.get_loc('viscosity_risk')
+            worksheet.conditional_format(1, risk_col_idx, len(df), risk_col_idx, {
+                'type': 'text', 'criteria': 'containing', 'value': 'High', 'format': high_risk_format
+            })
 
-        writer.close()
         print(f"SUCCESS: Report saved as {output_file_path.name}")
         print(f"Processed {len(df)} antibodies.")
     
