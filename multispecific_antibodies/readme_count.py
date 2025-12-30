@@ -8,9 +8,13 @@ EXCLUDE_FILES = {
     'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
     'categorize_antibody_format.py', 'fix_sequences.py',
     'therasabdab_analyze_formats.py', 'calculate_features.py',
-    'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
+    'sequence_features.xlsx', 'ml_sasa_predictor.py',
     'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
-    '3D_structure_builder.py'
+    '3D_structure_builder.py', 'analyze_hotspots.py', 'aggregation_predictor.py', 'Aggregation_Risk_Report.xlsx',
+    'antibody_diagnostic_tool.py', 'Antibody_Comparison_Report_2025.xlsx', 'build_pnas_shadow.py',
+    'compare_hydrophobicity.py', 'developability_hotspots.xlsx', 'mAb_truth_engine',
+    'mAb_Truth_Engine_Master.xlsx', 'MISSING_ANTIBODIES_LOG.xlsx', 'pnas_validator.py',
+    'PNAS_VS_CALCULATIONS.xlsx'
 }
 def update_readme_count():
     script_dir = os.path.dirname(os.path.abspath(__file__))
