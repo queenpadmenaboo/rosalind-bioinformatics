@@ -1,34 +1,12 @@
-"""
-ANTIBODY DEVELOPABILITY & SEQUENCE HOTSPOT AUDIT
-================================================
-This script identifies Post-Translational Modification (PTM) hotspots and 
-sequence motifs that impact Expression, Manufacturing, and Stability.
-
-THEORY & BACKGROUND:
---------------------
-1. N-Glycosylation (N-X-S/T): 
-   Glycans are large sugar groups. If an "N-X-S/T" motif appears in the CDR (Binding region), 
-   the sugar can physically block the antibody from hitting its target. 
-
-2. Deamidation (NG, NS): 
-   Asparagine (N) can chemically convert into Aspartic Acid (D). This adds a 
-   NEGATIVE charge to the protein, causing "Charge Variants."
-
-3. Isomerization (DG, DS, DT):
-   Aspartic Acid (D) flips its chemical structure, often leading to potency loss.
-
-4. Hydrophobic Clusters (Difficult Sequences):
-   Clusters of V, I, L, F, W are "oily" patches that cause aggregation or 
-   low expression yields in CHO cells.
-
-5. Cleavage Risk (K, R):
-   Lysine and Arginine are the primary "cutting sites" for proteases.
-"""
-
-from pathlib import Path
-import pandas as pd
-import re
 import os
+import re
+import pandas as pd
+from pathlib import Path
+
+# =================================================================
+# MODULE: ADVANCED ANTIBODY HOTSPOT AUDIT
+# PURPOSE: Identify PTMs and Structural Risks in Multispecifics
+# =================================================================
 
 # --- Path Configuration ---
 CANDIDATE_ROOTS = [
@@ -36,113 +14,100 @@ CANDIDATE_ROOTS = [
     Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"),
 ]
 ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), None)
-CATEGORY_FOLDERS = ['Whole_mAb', 'Bispecific_mAb', 'Bispecific_scFv', 'Other_Formats']
+CATEGORY_FOLDERS = ["Bispecific_mAb", "Bispecific_scFv", "Other_Formats", "Whole_mAb"]
 
-# --- Regex Motifs for Hotspot Detection ---
-HOTSPOT_MOTIFS = {
-    'N_Glycosylation': r'N[^P][ST]',
-    'Deamidation_NG': r'NG',
-    'Deamidation_NS': r'NS',
-    'Isomerization_D_motifs': r'D[GST]',
-    'Hydrophobic_Clusters': r'[VILFW]{5,}'
+# --- FULL EXCLUSION LIST ---
+EXCLUDE_FILES = {
+    'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
+    'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
+    'categorize_antibody_format.py', 'fix_sequences.py',
+    'therasabdab_analyze_formats.py', 'calculate_features.py',
+    'sequence_features.xlsx', 'ml_sasa_predictor.py',
+    'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
+    '3D_structure_builder.py', 'analyze_hotspots.py', 'aggregation_predictor.py', 'Aggregation_Risk_Report.xlsx',
+    'antibody_diagnostic_tool.py', 'Antibody_Comparison_Report_2025.xlsx', 'build_pnas_shadow.py',
+    'compare_hydrophobicity.py', 'developability_hotspots.xlsx', 'mAb_truth_engine',
+    'mAb_Truth_Engine_Master.xlsx', 'MISSING_ANTIBODIES_LOG.xlsx', 'pnas_validator.py',
+    'PNAS_VS_CALCULATIONS.xlsx'
 }
 
-def parse_py_file(filepath: Path) -> dict:
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
-    sequences = {}
-    current_header, current_seq = None, []
-    for line in content.split('\n'):
-        line = line.strip()
-        if line.startswith('>'):
-            if current_header: sequences[current_header] = ''.join(current_seq)
-            current_header, current_seq = line[1:], []
-        elif line and not any(line.startswith(c) for c in ('"""', '=', '#', 'import', 'from')):
-            if line.lower() not in ('na', 'n/a'): current_seq.append(line)
-    if current_header: sequences[current_header] = ''.join(current_seq)
-    return sequences
+# --- Theory: Post-Translational Modification (PTM) Risks ---
+HOTSPOT_MOTIFS = {
+    'N_Glycosylation': r'N[^P][ST]',          # Theory: Sugar attachment can block antigen binding
+    'Deamidation_NG': r'NG',                  # Theory: Asparagine to Aspartic acid (Charge change)
+    'Isomerization_DG': r'DG',                # Theory: Aspartic acid flip (Backbone instability)
+    'Hydrophobic_Cluster': r'[VILFW]{5,}',    # Theory: Surface-exposed 'greasy' patches
+    'Multispecific_Linker': r'([G]{3,4}S){2,}' # Theory: Linker flexibility/vulnerability
+}
 
-def scan_hotspots(sequence: str) -> dict:
-    report = {}
-    total_hotspots = 0
-    for name, motif in HOTSPOT_MOTIFS.items():
-        count = len(re.findall(motif, sequence.upper()))
-        report[name] = count
-        if name in ['N_Glycosylation', 'Hydrophobic_Clusters']:
-            total_hotspots += (count * 2)
-        else:
-            total_hotspots += count
+def scan_hotspots(sequence, name="Unknown"):
+    """Performs scan of the sequence for biophysical risks."""
+    seq = str(sequence).upper().strip()
+    report = {'Antibody': name}
+    total_score = 0
     
-    k_r_count = sequence.upper().count('K') + sequence.upper().count('R')
-    report['Cleavage_Risk_K_R'] = k_r_count
-    report['Total_Hotspot_Score'] = total_hotspots + (1 if k_r_count > 40 else 0)
+    for motif_name, pattern in HOTSPOT_MOTIFS.items():
+        matches = len(re.findall(pattern, seq))
+        report[motif_name] = matches
+        
+        # Weighting logic
+        if motif_name == 'N_Glycosylation':
+            total_score += (matches * 5)
+        else:
+            total_score += (matches * 2)
+            
+    report['Total_Hotspot_Score'] = total_score
     return report
 
-def main():
-    print("=" * 60)
-    print("RUNNING ANTIBODY HOTSPOT AUDIT (UPDATED COLUMN ORDER)")
-    print("=" * 60)
-    
-    all_data = []
+def run_hotspot_audit():
+    if not ROOT_DIR:
+        print("Error: Root path not found.")
+        return
+
+    print(f"--- STARTING HOTSPOT AUDIT: {ROOT_DIR} ---")
+    all_results = []
+
     for folder in CATEGORY_FOLDERS:
         folder_path = ROOT_DIR / folder
-        if not folder_path.exists(): continue
-        
+        if not folder_path.exists():
+            continue
+
         for py_file in folder_path.glob('*.py'):
-            if py_file.name.startswith(('calculate', 'diagnostic', 'analyze')): continue
+            if py_file.name in EXCLUDE_FILES:
+                continue
             
             try:
-                seq_dict = parse_py_file(py_file)
-                h_seqs = [s for h, s in seq_dict.items() if any(k in h.lower() for k in ['heavy', 'vh', '_h', 'chain a'])]
-                l_seqs = [s for h, s in seq_dict.items() if any(k in h.lower() for k in ['light', 'vl', '_l', 'chain b'])]
-
-                if not h_seqs and not l_seqs:
-                    vals = list(seq_dict.values())
-                    if len(vals) >= 2: h_seqs, l_seqs = [vals[0]], [vals[1]]
-                    elif len(vals) == 1: h_seqs = [vals[0]]
+                # SAFE TEXT READ
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
                 
-                for chain_type, chain_list in [('Heavy', h_seqs), ('Light', l_seqs)]:
-                    for i, seq in enumerate(chain_list):
-                        res = scan_hotspots(seq)
-                        # SWAPPED ORDER: Chain now comes before Folder
-                        entry = {
-                            'Antibody': py_file.stem,
-                            'Chain': f"{chain_type}_{i+1}",
-                            'Folder': folder,
-                            'AA_Length': len(seq)
-                        }
-                        entry.update(res)
-                        all_data.append(entry)
-            except Exception: continue
+                # Match text inside triple quotes
+                fasta_match = re.search(r'["\']{3}(.*?)["\']{3}', content, re.DOTALL)
+                if not fasta_match:
+                    continue
+                
+                fasta_str = fasta_match.group(1).strip()
+                
+                # Parse the FASTA headers and sequences
+                blocks = re.findall(r'>([^\n]+)\n([A-Z\n\s]+)', fasta_str)
+                
+                for header, seq_raw in blocks:
+                    clean_seq = re.sub(r'\s+', '', seq_raw)
+                    analysis = scan_hotspots(clean_seq, py_file.stem)
+                    analysis['Chain'] = header.strip()
+                    analysis['Format_Folder'] = folder
+                    all_results.append(analysis)
+            
+            except Exception as e:
+                print(f"Skipping {py_file.name}: {e}")
 
-    if all_data:
-        df = pd.DataFrame(all_data)
-        df = df.sort_values(by='Total_Hotspot_Score', ascending=False)
-        
-        output = ROOT_DIR / 'developability_hotspots.xlsx'
-        writer = pd.ExcelWriter(output, engine='xlsxwriter')
-        df.to_excel(writer, index=False, sheet_name='Hotspot Audit')
-        
-        workbook = writer.book
-        worksheet = writer.sheets['Hotspot Audit']
-        danger_fmt = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
-        warning_fmt = workbook.add_format({'bg_color': '#FFEB9C', 'font_color': '#9C5700'})
-        
-        worksheet.freeze_panes(1, 0)
-        worksheet.autofilter(0, 0, len(df), len(df.columns) - 1)
-        
-        for i, col in enumerate(df.columns):
-            worksheet.set_column(i, i, max(len(col), 12) + 2)
-
-        score_idx = df.columns.get_loc('Total_Hotspot_Score')
-        worksheet.conditional_format(1, score_idx, len(df), score_idx, 
-                                     {'type': 'cell', 'criteria': '>=', 'value': 5, 'format': danger_fmt})
-        worksheet.conditional_format(1, score_idx, len(df), score_idx, 
-                                     {'type': 'cell', 'criteria': 'between', 'minimum': 3, 'maximum': 4, 'format': warning_fmt})
-        
-        writer.close()
-        print(f"DONE! Report: {output.name}")
-    print("=" * 60)
+    if all_results:
+        df = pd.DataFrame(all_results)
+        output_file = ROOT_DIR / "developability_hotspots.xlsx"
+        df.to_excel(output_file, index=False)
+        print(f"SUCCESS: Hotspot Audit complete. Results: {output_file.name}")
+    else:
+        print("No antibody sequences found to analyze.")
 
 if __name__ == "__main__":
-    main()
+    run_hotspot_audit()

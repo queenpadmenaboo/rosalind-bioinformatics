@@ -1,11 +1,14 @@
 import os
-import glob
-import importlib.util
-from pathlib import Path
-from io import StringIO
-import numpy as np
+import re
 import pandas as pd
-from Bio import SeqIO
+import numpy as np
+from pathlib import Path
+
+# =================================================================
+# MODULE: AGGREGATION & BETA-PROPENSITY PREDICTOR
+# THEORY: Beta-sheet propensity + Hydrophobicity = Aggregation Risk.
+# This identifies "Sticky" regions that drive protein clumping.
+# =================================================================
 
 # --- Biophysical Propensity Scales ---
 HYDRO_SCALE = {
@@ -19,86 +22,94 @@ BETA_SCALE = {
     'R': 0.93, 'S': 0.75, 'T': 1.19, 'V': 1.70, 'W': 1.37, 'Y': 1.47
 }
 
+# --- Dynamic Path Resolution ---
+CANDIDATE_ROOTS = [
+    Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies"),
+    Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"),
+]
+ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), Path("."))
+
+# --- FULL EXCLUSION LIST ---
+EXCLUDE_FILES = {
+    'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
+    'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
+    'categorize_antibody_format.py', 'fix_sequences.py',
+    'therasabdab_analyze_formats.py', 'calculate_features.py',
+    'sequence_features.xlsx', 'ml_sasa_predictor.py',
+    'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
+    '3D_structure_builder.py', 'analyze_hotspots.py', 'aggregation_predictor.py', 'Aggregation_Risk_Report.xlsx',
+    'antibody_diagnostic_tool.py', 'Antibody_Comparison_Report_2025.xlsx', 'build_pnas_shadow.py',
+    'compare_hydrophobicity.py', 'developability_hotspots.xlsx', 'mAb_truth_engine',
+    'mAb_Truth_Engine_Master.xlsx', 'MISSING_ANTIBODIES_LOG.xlsx', 'pnas_validator.py',
+    'PNAS_VS_CALCULATIONS.xlsx'
+}
+
 FOLDERS_TO_PROCESS = ["Bispecific_mAb", "Bispecific_scFv", "Other_Formats", "Whole_mAb"]
 WINDOW = 7
 
 def analyze_sequence(sequence):
+    """Calculates APR count and Beta-propensity scores based on theory."""
+    sequence = str(sequence).upper().strip()
     h_scores, b_scores = [], []
     apr_count = 0
+    
     for i in range(len(sequence) - WINDOW + 1):
         sub = sequence[i : i + WINDOW]
         h = sum(HYDRO_SCALE.get(aa, 0) for aa in sub) / WINDOW
         b = sum(BETA_SCALE.get(aa, 0) for aa in sub) / WINDOW
         h_scores.append(h)
         b_scores.append(b)
+        
+        # Aggregation Prone Region (APR) Check
         if h > 2.0 and b > 1.2:
             apr_count += 1
+            
     avg_beta = np.mean(b_scores) if b_scores else 0
     avg_hydro = np.mean(h_scores) if h_scores else 0
+    
+    # Theory-based Overall Score calculation
     overall = (apr_count * 10) + (avg_beta * 20) + (avg_hydro * 5)
     return apr_count, round(avg_beta, 3), round(overall, 2)
 
 def run_predictor():
+    print(f"--- ANALYZING AGGREGATION RISK: {ROOT_DIR} ---")
     results = []
-    base_path = Path(".")
 
     for folder in FOLDERS_TO_PROCESS:
-        folder_path = base_path / folder
+        folder_path = ROOT_DIR / folder
         if not folder_path.exists(): continue
         
-        py_files = glob.glob(str(folder_path / "*.py"))
-        for file_path in py_files:
-            file_path = Path(file_path)
-            ab_name = file_path.stem
+        for file_path in folder_path.glob("*.py"):
+            if file_path.name in EXCLUDE_FILES: continue
+            
             try:
-                spec = importlib.util.spec_from_file_location(ab_name, file_path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                if hasattr(module, ab_name):
-                    fasta_string = getattr(module, ab_name)
-                    handle = StringIO(fasta_string.strip())
-                    for record in SeqIO.parse(handle, "fasta"):
-                        apr, beta, overall = analyze_sequence(str(record.seq))
-                        results.append({
-                            "Antibody": ab_name,
-                            "Chain": record.id,
-                            "Folder": folder,
-                            "APR_Count": apr,
-                            "Beta_Propensity": beta,
-                            "Overall_Score": overall
-                        })
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                fasta_match = re.search(r'["\']{3}(.*?)["\']{3}', content, re.DOTALL)
+                if not fasta_match: continue
+                
+                blocks = re.findall(r'>([^\n]+)\n([A-Z\n\s]+)', fasta_match.group(1).strip())
+                
+                for header, seq_raw in blocks:
+                    clean_seq = re.sub(r'\s+', '', seq_raw)
+                    apr, beta, overall = analyze_sequence(clean_seq)
+                    results.append({
+                        "Antibody": file_path.stem,
+                        "Chain": header.strip(),
+                        "Folder": folder,
+                        "APR_Count": apr,
+                        "Beta_Propensity": beta,
+                        "Overall_Score": overall
+                    })
             except Exception as e:
-                print(f"Error in {ab_name}: {e}")
+                print(f"Skipping {file_path.name}: {e}")
 
-    df = pd.DataFrame(results)
-    if not df.empty:
-        # Sort by score: Riskiest candidates at the top
-        df = df.sort_values(by="Overall_Score", ascending=False)
-        
-        output_file = "Aggregation_Risk_Report.xlsx"
-        writer = pd.ExcelWriter(output_file, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='Aggregation Risk', index=False)
-
-        workbook  = writer.book
-        worksheet = writer.sheets['Aggregation Risk']
-
-        # 1. ADD FILTER BUTTONS TO THE TOP ROW
-        # Defines the range for the filter from first cell (0,0) to the end of data
-        worksheet.autofilter(0, 0, len(df), len(df.columns) - 1)
-
-        # 2. FREEZE THE TOP ROW (Headers stay visible when scrolling)
-        worksheet.freeze_panes(1, 0)
-
-        # 3. AUTO-FIT COLUMN WIDTHS
-        for i, col in enumerate(df.columns):
-            # Calculate width based on max string length in column or header name
-            max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
-            worksheet.set_column(i, i, max_len)
-
-        writer.close()
-        print(f"SUCCESS: {output_file} created with filter buttons and frozen header.")
-    else:
-        print("No antibody sequences found to process.")
+    if results:
+        df = pd.DataFrame(results).sort_values(by="Overall_Score", ascending=False)
+        output_file = ROOT_DIR / "Aggregation_Risk_Report.xlsx"
+        df.to_excel(output_file, index=False)
+        print(f"SUCCESS: Aggregation Report created: {output_file.name}")
 
 if __name__ == "__main__":
     run_predictor()

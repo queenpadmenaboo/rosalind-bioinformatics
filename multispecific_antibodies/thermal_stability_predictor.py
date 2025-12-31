@@ -1,11 +1,12 @@
 import os
-import glob
-import importlib.util
-from pathlib import Path
-from io import StringIO
+import re
 import pandas as pd
-from Bio import SeqIO
+from pathlib import Path
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
+
+# =================================================================
+# MODULE: THERMAL STABILITY & GURUPRASAD INSTABILITY PREDICTOR
+# =================================================================
 
 """
 STABILITY ANALYSIS & BIOPHYSICAL THEORY:
@@ -22,131 +23,100 @@ STABILITY ANALYSIS & BIOPHYSICAL THEORY:
 
 3. INSTABILITY INDEX (Guruprasad et al., 1990):
    This methodology predicts stability based on 'Dipeptide' logic.
-   - DIPEPTIDE LOGIC: The algorithm looks at pairs of neighbors.
    - SCORE < 40: Classified as 'Stable'.
-   - SCORE > 40: Classified as 'Unstable' (shorter half-life/prone to degradation).
+   - SCORE > 40: Classified as 'Unstable'.
 
 4. RISK SCORE GRADING:
-   - A: High Tm (>75C) & Guruprasad Stable. (Best for manufacturing)
-   - B: Good Tm but slightly higher Instability Index.
-   - C: Low Tm or High Instability.
-   - F: Low Tm AND Very High Instability (>50). (High risk of aggregation/failure)
+   - A: High Tm (>75C) & Guruprasad Stable.
+   - F: Low Tm AND Very High Instability (>50).
 """
 
-# Configuration
+CANDIDATE_ROOTS = [
+    Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies"),
+    Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies"),
+]
+ROOT_DIR = next((p.resolve() for p in CANDIDATE_ROOTS if p.exists()), Path("."))
+
+# --- FULL EXCLUSION LIST ---
+EXCLUDE_FILES = {
+    'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
+    'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
+    'categorize_antibody_format.py', 'fix_sequences.py',
+    'therasabdab_analyze_formats.py', 'calculate_features.py',
+    'sequence_features.xlsx', 'ml_sasa_predictor.py',
+    'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
+    '3D_structure_builder.py', 'analyze_hotspots.py', 'aggregation_predictor.py', 'Aggregation_Risk_Report.xlsx',
+    'antibody_diagnostic_tool.py', 'Antibody_Comparison_Report_2025.xlsx', 'build_pnas_shadow.py',
+    'compare_hydrophobicity.py', 'developability_hotspots.xlsx', 'mAb_truth_engine',
+    'mAb_Truth_Engine_Master.xlsx', 'MISSING_ANTIBODIES_LOG.xlsx', 'pnas_validator.py',
+    'PNAS_VS_CALCULATIONS.xlsx'
+}
+
 FOLDERS_TO_PROCESS = ["Bispecific_mAb", "Bispecific_scFv", "Other_Formats", "Whole_mAb"]
 
 def assign_risk_score(tm, instability):
-    """Assigns a letter grade based on thermal and chemical stability."""
-    if tm > 75 and instability < 40:
-        return "A (Excellent)"
-    elif tm > 70 and instability < 45:
-        return "B (Good)"
-    elif tm < 65 and instability > 50:
-        return "F (High Risk)"
-    else:
-        return "C (Moderate)"
+    if tm > 75 and instability < 40: return "A (Excellent)"
+    elif tm < 65 and instability > 50: return "F (High Risk)"
+    else: return "C (Moderate)"
 
 def calculate_stability_metrics(sequence):
-    analyser = ProteinAnalysis(sequence)
+    clean_seq = "".join([aa for aa in str(sequence).upper() if aa in "ACDEFGHIKLMNPQRSTVWY"])
+    if len(clean_seq) < 10: return None
+
+    analyser = ProteinAnalysis(clean_seq)
     count = analyser.count_amino_acids()
-    total = len(sequence)
+    total = len(clean_seq)
     
-    # 1. Aliphatic Index
-    a, b = 2.9, 3.9 
-    aliphatic_index = (100 * (count['A'] + a*count['V'] + b*(count['I'] + count['L']))) / total
-    
-    # 2. Oily Residue Percentage
-    oily_percent = ((count['A'] + count['V'] + count['I'] + count['L']) / total) * 100
-    
-    # 3. Cysteine Content
+    # Aliphatic Index: (100 * (A + 2.9V + 3.9(I+L))) / total
+    aliphatic_index = (100 * (count['A'] + 2.9*count['V'] + 3.9*(count['I'] + count['L']))) / total
+    instability_index = analyser.instability_index()
     cys_percent = (count['C'] / total) * 100
     
-    # 4. Guruprasad Instability Index
-    instability_index = analyser.instability_index()
-    
-    # 5. Predicted Tm
+    # Predicted Tm Estimation logic
     predicted_tm = 55.0 + (0.5 * aliphatic_index) + (2.0 * cys_percent) - (instability_index * 0.1)
     
-    # 6. Status and Risk
-    status = "Stable" if instability_index < 40 else "Unstable"
-    risk_grade = assign_risk_score(predicted_tm, instability_index)
-
     return {
         "Aliphatic_Index": round(aliphatic_index, 2),
-        "Oily_Residue_Percent": round(oily_percent, 2),
-        "Cys_Percent": round(cys_percent, 2),
         "Instability_Index": round(instability_index, 2),
         "Predicted_Tm_C": round(predicted_tm, 1),
-        "Stability_Status": status,
-        "Risk_Score": risk_grade
+        "Risk_Score": assign_risk_score(predicted_tm, instability_index)
     }
 
 def run_stability_predictor():
+    print(f"--- ANALYZING THERMAL STABILITY: {ROOT_DIR} ---")
     results = []
-    base_path = Path(".")
 
     for folder in FOLDERS_TO_PROCESS:
-        folder_path = base_path / folder
+        folder_path = ROOT_DIR / folder
         if not folder_path.exists(): continue
         
-        print(f"Scanning: {folder}...")
-        for file_path in glob.glob(str(folder_path / "*.py")):
-            file_path = Path(file_path)
-            ab_name = file_path.stem
+        for file_path in folder_path.glob("*.py"):
+            if file_path.name in EXCLUDE_FILES: continue
+            
             try:
-                spec = importlib.util.spec_from_file_location(ab_name, file_path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
                 
-                if hasattr(module, ab_name):
-                    fasta_string = getattr(module, ab_name)
-                    handle = StringIO(fasta_string.strip())
-                    for record in SeqIO.parse(handle, "fasta"):
-                        row_data = {
-                            "Antibody": ab_name,
-                            "Chain": record.id,
-                            "Folder": folder,
-                            "Seq_Length": len(record.seq)
-                        }
-                        metrics = calculate_stability_metrics(str(record.seq))
-                        row_data.update(metrics)
-                        results.append(row_data)
+                fasta_match = re.search(r'["\']{3}(.*?)["\']{3}', content, re.DOTALL)
+                if not fasta_match: continue
+                
+                blocks = re.findall(r'>([^\n]+)\n([A-Z\n\s]+)', fasta_match.group(1).strip())
+                
+                for header, seq_raw in blocks:
+                    clean_seq = re.sub(r'\s+', '', seq_raw)
+                    metrics = calculate_stability_metrics(clean_seq)
+                    if metrics:
+                        row = {"Antibody": file_path.stem, "Chain": header.strip(), "Folder": folder}
+                        row.update(metrics)
+                        results.append(row)
             except Exception as e:
-                print(f"Error in {ab_name}: {e}")
+                print(f"Skipping {file_path.name}: {e}")
 
-    df = pd.DataFrame(results)
-    if not df.empty:
-        df = df.sort_values(by="Predicted_Tm_C", ascending=False)
-        output_file = "Thermal_Stability_Report.xlsx"
-        writer = pd.ExcelWriter(output_file, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='Stability Analysis', index=False)
-
-        workbook = writer.book
-        worksheet = writer.sheets['Stability Analysis']
-        worksheet.autofilter(0, 0, len(df), len(df.columns) - 1)
-        worksheet.freeze_panes(1, 0)
-        
-        # Adding some conditional formatting to make Grade F red
-        red_format = workbook.add_format({'bg_color': '#FFC7CE', 'font_color': '#9C0006'})
-        worksheet.conditional_format(1, 10, len(df), 10, {
-            'type': 'text', 'criteria': 'containing', 'value': 'F', 'format': red_format
-        })
-
-        for i, col in enumerate(df.columns):
-            max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
-            worksheet.set_column(i, i, max_len)
-        writer.close()
-
-        print(f"\n" + "="*50)
-        print(f"GURUPRASAD STABILITY SUMMARY")
-        print(f"="*50)
-        print(f"Total Chains Analyzed: {len(df)}")
-        print(f"Average Predicted Tm:  {df['Predicted_Tm_C'].mean():.2f}°C")
-        print(f"Grade A Candidates:    {len(df[df['Risk_Score'].str.startswith('A')])}")
-        print(f"Grade F (High Risk):   {len(df[df['Risk_Score'].str.startswith('F')])}")
-        print(f"Report Saved:          {output_file}")
-        print(f"="*50 + "\n")
+    if results:
+        df = pd.DataFrame(results).sort_values(by="Predicted_Tm_C", ascending=False)
+        output_file = ROOT_DIR / "Thermal_Stability_Report.xlsx"
+        df.to_excel(output_file, index=False)
+        print(f"SUCCESS: Stability Report created: {output_file.name}")
 
 if __name__ == "__main__":
     run_stability_predictor()
