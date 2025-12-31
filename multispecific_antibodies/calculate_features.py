@@ -1,35 +1,8 @@
 """
 BIOINFORMATICS PIPELINE: ANTIBODY STABILITY & VISCOSITY MASTER CALCULATOR
 ==========================================================================================
-VISCOSITY & ELECTROSTATIC THEORY:
-1. THE REPULSION PRINCIPLE: 
-   Antibodies are large, charged molecules. For high-concentration formulations 
-   (e.g., >100 mg/mL), we rely on "Electrostatic Repulsion" to keep them apart. 
-   If molecules have the same strong charge, they bounce off each other like magnets.
-
-2. NET CHARGE @ pH 5.5 (Formulation pH):
-   Most antibodies are stored in slightly acidic buffers (pH 5.5). 
-   - A Net Charge > +20 or < -20 is ideal for "Low Viscosity."
-   - A Net Charge near ZERO (-10 to +10) indicates a "High Viscosity Risk" because 
-     the molecules lack the force to repel each other, leading to "molecular tangling."
-
-3. ISOELECTRIC POINT (pI):
-   The pH where the net charge is zero. If the formulation pH is near the pI, 
-   the antibody is "neutral" and highly likely to aggregate or become syrupy.
-
-4. CALCULATION METHOD:
-   The script uses the ProtParam module (BioPython) to calculate the pI and then 
-   solves the Henderson-Hasselbalch equation for the specific pH of 5.5 to 
-   determine the net charge of the entire protein complex.
-
-5. SMART PARSING LOGIC:
-   Handles non-standard headers (e.g., Emicizumab, Aducanumab) by looking for 
-   expanded keywords (_h, _l, vh, vl) and implementing a fallback that assumes 
-   the sequence order (Heavy then Light) if no keywords are found.
+UPDATED DEC 2025: Added Homodimer Multiplier Logic for Multispecific Benchmarks.
 ==========================================================================================
-
-REQUIRES:
-    pip install biopython pandas xlsxwriter
 """
 
 from pathlib import Path
@@ -39,16 +12,10 @@ import string
 import os
 
 # ==========================================================================================
-# --- Path Configuration (TOGGLE BETWEEN PROJECT AND SHADOW) ---
+# --- Path Configuration ---
 # ==========================================================================================
 
-# --- OPTION A: PROJECT MODE (Your Designs) ---
-# ROOT_DIR = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies")
-
-# --- OPTION B: SHADOW MODE (The 137 PNAS Benchmarks) ---
 ROOT_DIR = Path(r"C:\Users\meeko\rosalind-bioinformatics\multispecific_antibodies\shadow_benchmarks")
-
-# ==========================================================================================
 
 if not ROOT_DIR.exists():
     raise FileNotFoundError(f"No valid ROOT_DIR found at {ROOT_DIR}")
@@ -64,18 +31,23 @@ EXCLUDE_FILES = {
     'sequence_features.csv', 'sequence_features.xlsx', 'ml_sasa_predictor.py',
     'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
     '3D_structure_builder.py', 'antibody_diagnostic_tool.py', 'build_pnas_shadow.py',
-    'recover_truth_engine.py', 'merge_truth.py'
+    'recover_truth_engine.py', 'merge_truth.py', 'pnas_validator.py'
 }
 
 STANDARD_AAS = sorted("ACDEFGHIKLMNPQRSTVWY")
 
-def parse_py_file(filepath: Path) -> dict:
-    """Parses Python files to extract FASTA headers and sequences."""
+def parse_py_file(filepath: Path) -> tuple:
+    """Parses Python files to extract metadata, headers and sequences."""
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
+    
     sequences = {}
     current_header = None
     current_seq = []
+    
+    # Extract metadata from the triple-quote block
+    is_homodimer = "homodimer" in content.lower()
+    
     for line in content.split('\n'):
         line = line.strip()
         if line.startswith('>'):
@@ -83,16 +55,17 @@ def parse_py_file(filepath: Path) -> dict:
                 sequences[current_header] = ''.join(current_seq)
             current_header = line[1:]
             current_seq = []
-        elif line and not any(line.startswith(c) for c in ('"""', '=', '#', 'import', 'from')):
+        elif line and not any(line.startswith(c) for c in ('"""', '=', '#', 'import', 'from', 'FORMAT:')):
             if line.lower() not in ('na', 'n/a'):
                 current_seq.append(line)
     
     if current_header:
         sequences[current_header] = ''.join(current_seq)
-    return sequences
+    
+    return sequences, is_homodimer
 
 def analyze_sequence_features(sequence: str) -> dict:
-    """Calculates biophysical features and Viscosity Risk based on Electrostatic Theory."""
+    """Calculates biophysical features and Viscosity Risk."""
     clean_seq = ''.join(aa for aa in sequence.upper() if aa in "ACDEFGHIKLMNPQRSTVWY")
     if not clean_seq:
         return None
@@ -101,7 +74,7 @@ def analyze_sequence_features(sequence: str) -> dict:
     pi = analysis.isoelectric_point()
     charge_55 = analysis.charge_at_pH(5.5)
     
-    # VISCOSITY RISK LOGIC
+    # Base risk calculation (based on absolute charge per complex)
     abs_charge = abs(charge_55)
     if abs_charge < 10.0:
         v_risk = "High Risk (Neutral/Sticky)"
@@ -143,13 +116,14 @@ def main():
                 continue
                 
             try:
-                sequences = parse_py_file(py_file)
+                sequences, is_homodimer = parse_py_file(py_file)
                 if not sequences:
                     continue
 
                 h_seqs = [s for h, s in sequences.items() if any(k in h.lower() for k in ['heavy', 'vh', '_h', 'chain a'])]
                 l_seqs = [s for h, s in sequences.items() if any(k in h.lower() for k in ['light', 'vl', '_l', 'chain b'])]
 
+                # Fallback for generic headers
                 if not h_seqs and not l_seqs:
                     all_seqs = list(sequences.values())
                     if len(all_seqs) >= 2:
@@ -157,23 +131,42 @@ def main():
                     elif len(all_seqs) == 1:
                         h_seqs, l_seqs = [all_seqs[0]], []
 
+                # --- APPLY STOICHIOMETRY LOGIC ---
                 if folder == 'Whole_mAb':
-                    if not h_seqs or not l_seqs:
-                        continue
+                    # Standard IgG (H2L2)
                     full_sequence = "".join(h_seqs * 2 + l_seqs * 2) 
-                    num_h, num_l = 2, 2
+                    multiplier = 1
+                elif is_homodimer:
+                    # Acimtamig Style: Double the entire sequence set
+                    full_sequence = "".join(h_seqs) + "".join(l_seqs)
+                    multiplier = 2
+                    print(f"  [METRIC] Applying x2 multiplier for Homodimer: {py_file.stem}")
                 else:
-                    full_sequence = ''.join(h_seqs) + ''.join(l_seqs)
-                    num_h, num_l = len(h_seqs), len(l_seqs)
-                
+                    # Standard Fragments (scFv, VHH, etc.)
+                    full_sequence = "".join(h_seqs) + "".join(l_seqs)
+                    multiplier = 1
+
                 features = analyze_sequence_features(full_sequence)
+                
                 if features:
+                    # Apply multipliers to extensive properties
+                    features['net_charge_pH5.5'] *= multiplier
+                    total_len = len(full_sequence) * multiplier
+                    
+                    # Re-evaluate viscosity risk based on MULTIPLIED charge
+                    abs_charge = abs(features['net_charge_pH5.5'])
+                    if abs_charge < 10.0:
+                        features['viscosity_risk'] = "High Risk (Neutral/Sticky)"
+                    elif abs_charge < 20.0:
+                        features['viscosity_risk'] = "Moderate Risk"
+                    else:
+                        features['viscosity_risk'] = "Low Risk (Good Repulsion)"
+
                     data = {
                         'antibody': py_file.stem,
                         'folder': folder,
-                        'heavy_chains': num_h,
-                        'light_chains': num_l,
-                        'total_length': len(full_sequence)
+                        'is_homodimer': is_homodimer,
+                        'total_length': total_len
                     }
                     data.update(features)
                     results.append(data)
