@@ -50,11 +50,15 @@ def parse_chains(fasta_str):
     records = list(SeqIO.parse(StringIO(fasta_str), "fasta"))
     chains = {} 
     for r in records:
+        rid = r.id.lower()  # <--- THIS LINE WAS MISSING
         num_match = re.search(r'_(\d+)$', r.id)
         num = num_match.group(1) if num_match else "1"
-        if num not in chains: chains[num] = {}
-        if "heavy" in rid or "vhh" in rid: chains[num]["H"] = str(r.seq)
-        elif "light" in rid: chains[num]["L"] = str(r.seq)
+        if num not in chains: 
+            chains[num] = {}
+        if "heavy" in rid or "vhh" in rid: 
+            chains[num]["H"] = str(r.seq)
+        elif "light" in rid: 
+            chains[num]["L"] = str(r.seq)
     return [c for c in chains.values() if "H" in c or "L" in c]
 
 def run_pipeline():
