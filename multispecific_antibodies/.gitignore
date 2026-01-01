@@ -1,0 +1,6 @@
+PDB_Output_Files_GPU/
+*.pdb
+*.sasa.txt
+"PDB_Output_Files_GPU/" 
+"*.pdb" 
+"*.sasa.txt" 
