@@ -41,9 +41,10 @@ EXCLUDE_FILES = {
     'all_antibody_sasa_features.csv', 'ml_sasa_predictor_chains.py', 'all_antibody_sasa_chains.csv',
     '3D_structure_builder.py', 'analyze_hotspots.py', 'aggregation_predictor.py', 'Aggregation_Risk_Report.xlsx',
     'antibody_diagnostic_tool.py', 'Antibody_Comparison_Report_2025.xlsx', 'build_pnas_shadow.py',
-    'compare_hydrophobicity.py', 'developability_hotspots.xlsx', 'mAb_truth_engine',
+    'compare_hydrophobicity.py', 'developability_hotspots.xlsx', 'mAb_truth_engine.py',
     'mAb_Truth_Engine_Master.xlsx', 'MISSING_ANTIBODIES_LOG.xlsx', 'pnas_validator.py',
-    'PNAS_VS_CALCULATIONS.xlsx', '3D_structure_builder_gpu.py'
+    'PNAS_VS_CALCULATIONS.xlsx', '3D_structure_builder_gpu.py', 'format_pairing_predictor.py',
+    'immunogenicity_predictor.py', 'thermal_stability_predictor.py'
 }
 
 print("--- INITIALIZING 4080 SUPER ENGINE ---")
