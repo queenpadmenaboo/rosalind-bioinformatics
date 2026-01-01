@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from tqdm import tqdm
 
-# Suppress noise
+# Suppress library noise
 logging.getLogger().setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
@@ -17,7 +17,7 @@ import transformers
 from transformers.models.bert.configuration_bert import BertConfig
 from transformers.models.bert.tokenization_bert import BertTokenizer
 
-# 2. PATCH PYTORCH 2.6+ SECURITY
+# 2. PATCH PYTORCH 2.6+ 
 try:
     torch.serialization.add_safe_globals([transformers.tokenization_utils.Trie, BertConfig, BertTokenizer])
 except:
@@ -36,10 +36,7 @@ print("--- INITIALIZING 4080 SUPER ENGINE ---")
 runner = IgFoldRunner()
 
 def extract_chains_raw_text(file_path):
-    """
-    Reads .py files as RAW TEXT to bypass SyntaxErrors.
-    Pulls sequences and groups them by Arm (_1, _2).
-    """
+    """Reads .py files as RAW TEXT. Pulls sequences by Arm (_1, _2)."""
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -52,12 +49,10 @@ def extract_chains_raw_text(file_path):
         if not lines: continue
         
         header = lines[0].strip()
-        # Clean sequence: Keep ONLY A-Z letters
         sequence = re.sub(r'[^A-Z]', '', "".join(lines[1:]).upper())
         
         if not sequence: continue
 
-        # Detect Arm 1 vs Arm 2 via _1 or _2 suffix in header
         num_match = re.search(r'_(\d+)', header)
         pair_num = num_match.group(1) if num_match else "1"
         
@@ -87,20 +82,17 @@ def run_pipeline():
             
         os.makedirs(output_folder, exist_ok=True)
 
-        # GATHER FILES AND PRINT COUNT FOR VERIFICATION
-        antibody_files = list(folder_path.glob("*.py"))
-        print(f"\nFOLDER: {folder_name} | FOUND: {len(antibody_files)} files")
+        # --- FIX: Only look at files in the TOP LEVEL of the folder ---
+        # This stops the script from finding 937 files if only 471 exist.
+        antibody_files = [f for f in folder_path.iterdir() if f.is_file() and f.suffix == ".py"]
+        
+        print(f"\nFOLDER: {folder_name} | TRUE COUNT: {len(antibody_files)} files")
 
-        # Progress bar for the files in this specific folder
         for f_path in tqdm(antibody_files, desc=f"Folding {folder_name}"):
-            # PULL NAME FROM FILENAME
             ab_name = f_path.stem 
-            
-            # Scrape pairs (Arm 1, Arm 2) from the text
             paired_list = extract_chains_raw_text(f_path)
             
             for i, seq_dict in enumerate(paired_list):
-                # Format: filename_Pair_1
                 pair_id = f"{ab_name}_Pair_{i+1}"
                 pdb_path = output_folder / f"{pair_id}.pdb"
                 sasa_path = pdb_path.with_suffix(".sasa.txt")
@@ -109,7 +101,6 @@ def run_pipeline():
                     continue
 
                 try:
-                    # GPU FOLDING TASK
                     runner.fold(
                         pdb_file=str(pdb_path),
                         sequences=seq_dict,
@@ -129,9 +120,8 @@ def run_pipeline():
                 except Exception as e:
                     print(f"\n[ERROR] Failed {pair_id}: {e}")
 
-            # Keep the 4080 SUPER VRAM clear
             torch.cuda.empty_cache()
 
 if __name__ == "__main__":
     run_pipeline()
-    print("\n=== PROCESSING COMPLETE. ALL PDBs AND SASA FILES GENERATED ===")
+    print("\n=== PROCESSING COMPLETE ===")
