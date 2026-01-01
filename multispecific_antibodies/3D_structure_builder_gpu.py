@@ -1,119 +1,118 @@
 import os
+# 1. FORCE SECURITY WALL DOWN GLOBALLY
+os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
+
 import re
+import glob
 import torch
-import torch.serialization
-import collections
+import warnings
+import logging
 from pathlib import Path
-from tqdm import tqdm
 from io import StringIO
+import importlib.util
+
+# Suppress noise
+logging.getLogger().setLevel(logging.ERROR)
+warnings.filterwarnings("ignore")
+
+# 2. ALLOWLIST SPECIFIC CLASSES FOR PYTORCH 2.6
+import transformers
+from transformers.models.bert.configuration_bert import BertConfig
+from transformers.models.bert.tokenization_bert import BertTokenizer
+try:
+    torch.serialization.add_safe_globals([transformers.tokenization_utils.Trie, BertConfig, BertTokenizer])
+except:
+    pass # Handle if already added
+
+from igfold import IgFoldRunner
+from Bio import SeqIO
 from Bio.PDB import PDBParser
 from Bio.PDB.SASA import ShrakeRupley
-
-# 1. THE "NUCLEAR" SECURITY FIX (For PyTorch 2.6+)
-# Overrides weights_only to False to stop the UnpicklingError
-original_load = torch.serialization.load
-def patched_load(*args, **kwargs):
-    kwargs.pop('weights_only', None) 
-    return original_load(*args, weights_only=False, **kwargs)
-
-torch.load = patched_load
-torch.serialization.load = patched_load
-
-# 2. START GPU ENGINE
-from igfold import IgFoldRunner
-print("--- INITIALIZING 4080 SUPER ENGINE ---")
-runner = IgFoldRunner()
 
 # --- CONFIG ---
 INPUT_BASE = Path("shadow_benchmarks")
 OUTPUT_BASE = Path("PDB_Output_Files_GPU")
 FOLDERS = ["Bispecific_mAb", "Bispecific_scFv", "Other_Formats", "Whole_mAb"]
 
-def extract_tasks_directly(file_path):
-    """
-    ULTRA-AGGRESSIVE EXTRACTION:
-    Finds every header starting with > and grabs every letter following it.
-    Ignores all Python quotes, commas, variable names, and case.
-    """
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # Grab blocks: everything from > to the next > (or end of file)
-    blocks = re.findall(r'>(.*?)(?=>|\Z)', content, re.DOTALL)
-    
-    chains = {}
-    for block in blocks:
-        lines = block.strip().split('\n')
-        header = lines[0].strip().lower()
-        # Keep ONLY letters A-Z (removes quotes, commas, spaces, numbers)
-        sequence = re.sub(r'[^A-Z]', '', "".join(lines[1:]).upper())
-        
-        if not sequence: continue
+print("--- INITIALIZING 4080 SUPER ENGINE ---")
+runner = IgFoldRunner()
 
-        # Detect Arm 1 vs Arm 2 (_1, _2)
-        # Suffix $ removed to handle cases where quotes/commas follow the header
-        num_match = re.search(r'_(\d+)', header)
-        n = num_match.group(1) if num_match else "1"
+def parse_fasta_to_pairs(fasta_string):
+    """Uses the exact logic from your other file."""
+    chains_by_number = {}
+    handle = StringIO(fasta_string)
+    for record in SeqIO.parse(handle, "fasta"):
+        seq_id = record.id.lower()
+        seq = str(record.seq)
         
-        if n not in chains: 
-            chains[n] = {}
+        number_match = re.search(r'_(\d+)$', record.id)
+        pair_num = number_match.group(1) if number_match else "1"
         
-        # Case-insensitive chain identification
-        h_labels = ["heavy", "vhh", "vh"]
-        l_labels = ["light", "vl"]
-        
-        if any(label in header for label in h_labels):
-            chains[n]["H"] = sequence
-        elif any(label in header for label in l_labels):
-            chains[n]["L"] = sequence
+        if "heavy" in seq_id or "vhh" in seq_id:
+            chains_by_number.setdefault(pair_num, {})["H"] = seq
+        elif "light" in seq_id:
+            chains_by_number.setdefault(pair_num, {})["L"] = seq
             
-    return [c for c in chains.values() if "H" in c or "L" in c]
+    return [c for c in chains_by_number.values() if "H" in c or "L" in c]
 
 def run_pipeline():
     os.makedirs(OUTPUT_BASE, exist_ok=True)
     
     for folder_name in FOLDERS:
         folder_path = INPUT_BASE / folder_name
-        output_folder = OUTPUT_BASE / folder_name
+        output_folder_path = OUTPUT_BASE / folder_name
         if not folder_path.exists(): continue
-        os.makedirs(output_folder, exist_ok=True)
-        
-        files = list(folder_path.glob("*.py"))
-        for f_path in tqdm(files, desc=f"Processing {folder_name}"):
-            ab_name = f_path.stem
+        os.makedirs(output_folder_path, exist_ok=True)
+
+        print(f"\nProcessing Folder: {folder_name}")
+        antibody_files = list(folder_path.glob("*.py"))
+
+        for file_path in antibody_files:
+            antibody_name = file_path.stem
             
-            # Extract sequences from the .py file content
-            tasks = extract_tasks_directly(f_path)
-            if not tasks: 
-                continue # If list is empty, skip to next file
-            
-            for i, seq_dict in enumerate(tasks):
-                pdb_fn = output_folder / f"{ab_name}_Pair_{i+1}.pdb"
-                sasa_fn = pdb_fn.with_suffix(".sasa.txt")
+            try:
+                # DYNAMIC IMPORT: Exactly how your other file does it
+                spec = importlib.util.spec_from_file_location(antibody_name, file_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
                 
-                # Resumable: skip if SASA result already exists
-                if sasa_fn.exists(): continue 
-                
-                try:
-                    # STEP A: GPU 3D FOLDING (Using 4080 SUPER)
-                    runner.fold(str(pdb_fn), seq_dict, do_refine=False, do_renum=False)
-                    
-                    # STEP B: CALCULATE FEATURES (SASA) - Per Dec 30 Instruction
-                    parser = PDBParser(QUIET=True)
-                    struct = parser.get_structure(ab_name, str(pdb_fn))
+                if hasattr(module, antibody_name):
+                    sequence_string = getattr(module, antibody_name).strip()
+                else:
+                    continue
+
+                paired_list = parse_fasta_to_pairs(sequence_string)
+
+                for i, sequences_dict in enumerate(paired_list):
+                    pair_id = f"{antibody_name}_Pair_{i+1}"
+                    output_path = output_folder_path / f"{pair_id}.pdb"
+                    sasa_path = output_path.with_suffix(".sasa.txt")
+
+                    if sasa_path.exists():
+                        continue
+
+                    print(f"Folding {pair_id} on GPU...")
+                    runner.fold(
+                        pdb_file=str(output_path),
+                        sequences=sequences_dict,
+                        do_refine=False,
+                        do_renum=False
+                    )
+
+                    # [2025-12-30] CALCULATE FEATURES (SASA)
+                    p = PDBParser(QUIET=True)
+                    struct = p.get_structure(pair_id, str(output_path))
                     sr = ShrakeRupley()
                     sr.compute(struct, level="S")
                     
-                    # Save numeric SASA result
-                    with open(sasa_fn, "w") as sf:
-                        sf.write(f"{struct.sasa:.2f}")
-                        
-                except Exception as e:
-                    print(f"\n[ERROR] {ab_name} (Pair {i+1}): {e}")
+                    with open(sasa_path, "w") as f:
+                        f.write(f"{struct.sasa:.2f}")
 
-            # Keep 4080 Super VRAM clean
-            torch.cuda.empty_cache()
+                torch.cuda.empty_cache()
+
+            except Exception as e:
+                print(f"Failed {antibody_name}: {e}")
 
 if __name__ == "__main__":
     run_pipeline()
-    print("\n--- ALL FOLDING AND SASA CALCULATIONS COMPLETE ---")
+    print("\n=== FINISHED ALL FOLDERS ===")
