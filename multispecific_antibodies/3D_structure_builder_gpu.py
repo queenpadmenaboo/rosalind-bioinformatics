@@ -1,5 +1,5 @@
 import os
-# 1. FORCE SECURITY BYPASS (Must be before torch is imported)
+# 1. FORCE GPU SECURITY BYPASS
 os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
 
 import re
@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from tqdm import tqdm
 
-# Suppress library noise
+# Suppress noise
 logging.getLogger().setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
@@ -17,110 +17,90 @@ import transformers
 from transformers.models.bert.configuration_bert import BertConfig
 from transformers.models.bert.tokenization_bert import BertTokenizer
 
-# 2. PATCH PYTORCH 2.6+ 
 try:
     torch.serialization.add_safe_globals([transformers.tokenization_utils.Trie, BertConfig, BertTokenizer])
-except:
-    pass
+except: pass
 
 from igfold import IgFoldRunner
 from Bio.PDB import PDBParser
 from Bio.PDB.SASA import ShrakeRupley
 
-# --- CONFIG ---
-INPUT_BASE = Path("shadow_benchmarks")
-OUTPUT_BASE = Path("PDB_Output_Files_GPU")
-FOLDERS = ["Bispecific_mAb", "Bispecific_scFv", "Other_Formats", "Whole_mAb"]
+# --- PATH CONFIG ---
+# We point to the MAIN folder and will tell the script NOT to look inside subfolders
+BASE_DIR = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
+OUTPUT_DIR = BASE_DIR / "PDB_Output_Files_GPU"
 
 print("--- INITIALIZING 4080 SUPER ENGINE ---")
 runner = IgFoldRunner()
 
 def extract_chains_raw_text(file_path):
-    """Reads .py files as RAW TEXT. Pulls sequences by Arm (_1, _2)."""
+    """Reads .py files as text to find H and L chains."""
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    
-    # Regex: Find all FASTA blocks starting with >
     blocks = re.findall(r'>(.*?)(?=>|\"\"\"|\'\'\'|\Z)', content, re.DOTALL)
-    
-    chains_by_number = {}
+    chains = {"H": None, "L": None}
     for block in blocks:
         lines = block.strip().split('\n')
         if not lines: continue
-        
-        header = lines[0].strip()
+        header = lines[0].lower()
         sequence = re.sub(r'[^A-Z]', '', "".join(lines[1:]).upper())
-        
         if not sequence: continue
-
-        num_match = re.search(r'_(\d+)', header)
-        pair_num = num_match.group(1) if num_match else "1"
-        
-        if pair_num not in chains_by_number:
-            chains_by_number[pair_num] = {}
-        
-        h_labels = ["heavy", "vhh", "vh"]
-        l_labels = ["light", "vl"]
-        
-        header_lower = header.lower()
-        if any(label in header_lower for label in h_labels):
-            chains_by_number[pair_num]["H"] = sequence
-        elif any(label in header_lower for label in l_labels):
-            chains_by_number[pair_num]["L"] = sequence
-            
-    return [c for c in chains_by_number.values() if "H" in c and "L" in c]
+        if any(h in header for h in ["heavy", "vh", "vhh"]):
+            chains["H"] = sequence
+        elif any(l in header for l in ["light", "vl"]):
+            chains["L"] = sequence
+    return chains if (chains["H"] and chains["L"]) else None
 
 def run_pipeline():
-    os.makedirs(OUTPUT_BASE, exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     
-    for folder_name in FOLDERS:
-        folder_path = INPUT_BASE / folder_name
-        output_folder = OUTPUT_BASE / folder_name
+    # --- THE CRITICAL FIX ---
+    # .iterdir() only looks at files in the MAIN folder. 
+    # It will NOT enter "shadow_benchmarks" or any other subfolder.
+    antibody_files = [
+        f for f in BASE_DIR.iterdir() 
+        if f.is_file() and f.suffix == ".py" and not f.name.startswith("._")
+    ]
+    
+    print(f"\nSUCCESS: Found {len(antibody_files)} main antibody files in the root folder.")
+    print(f"IGNORING: All subfolders (including shadow_benchmarks).\n")
+
+    for f_path in tqdm(antibody_files, desc="Folding Progress"):
+        ab_name = f_path.stem 
+        seq_dict = extract_chains_raw_text(f_path)
         
-        if not folder_path.exists():
+        if not seq_dict:
             continue
+
+        pdb_path = OUTPUT_DIR / f"{ab_name}.pdb"
+        sasa_path = pdb_path.with_suffix(".sasa.txt")
+
+        if sasa_path.exists():
+            continue
+
+        try:
+            # GPU FOLDING
+            runner.fold(
+                pdb_file=str(pdb_path),
+                sequences=seq_dict,
+                do_refine=False,
+                do_renum=False
+            )
+
+            # [2025-12-30] calculate_features (SASA)
+            parser = PDBParser(QUIET=True)
+            struct = parser.get_structure(ab_name, str(pdb_path))
+            sr = ShrakeRupley()
+            sr.compute(struct, level="S")
             
-        os.makedirs(output_folder, exist_ok=True)
+            with open(sasa_path, "w") as f:
+                f.write(f"{struct.sasa:.2f}")
 
-        # --- FIX: Only look at files in the TOP LEVEL of the folder ---
-        # This stops the script from finding 937 files if only 471 exist.
-        antibody_files = [f for f in folder_path.iterdir() if f.is_file() and f.suffix == ".py"]
-        
-        print(f"\nFOLDER: {folder_name} | TRUE COUNT: {len(antibody_files)} files")
+        except Exception as e:
+            print(f"\n[ERROR] Failed {ab_name}: {e}")
 
-        for f_path in tqdm(antibody_files, desc=f"Folding {folder_name}"):
-            ab_name = f_path.stem 
-            paired_list = extract_chains_raw_text(f_path)
-            
-            for i, seq_dict in enumerate(paired_list):
-                pair_id = f"{ab_name}_Pair_{i+1}"
-                pdb_path = output_folder / f"{pair_id}.pdb"
-                sasa_path = pdb_path.with_suffix(".sasa.txt")
-
-                if sasa_path.exists():
-                    continue
-
-                try:
-                    runner.fold(
-                        pdb_file=str(pdb_path),
-                        sequences=seq_dict,
-                        do_refine=False,
-                        do_renum=False
-                    )
-
-                    # [2025-12-30] CALCULATE FEATURES (SASA)
-                    parser = PDBParser(QUIET=True)
-                    struct = parser.get_structure(pair_id, str(pdb_path))
-                    sr = ShrakeRupley()
-                    sr.compute(struct, level="S")
-                    
-                    with open(sasa_path, "w") as f:
-                        f.write(f"{struct.sasa:.2f}")
-
-                except Exception as e:
-                    print(f"\n[ERROR] Failed {pair_id}: {e}")
-
-            torch.cuda.empty_cache()
+        # Keep 4080 SUPER VRAM clean
+        torch.cuda.empty_cache()
 
 if __name__ == "__main__":
     run_pipeline()
