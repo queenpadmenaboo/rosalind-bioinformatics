@@ -1,4 +1,5 @@
 import os
+# 1. GPU SECURITY BYPASS (Required for 4080 SUPER / Torch 2.6+)
 os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
 
 import re
@@ -8,6 +9,7 @@ import logging
 from pathlib import Path
 from tqdm import tqdm
 
+# Suppress library noise
 logging.getLogger().setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
@@ -15,6 +17,7 @@ import transformers
 from transformers.models.bert.configuration_bert import BertConfig
 from transformers.models.bert.tokenization_bert import BertTokenizer
 
+# PATCH FOR PYTORCH 2.6+
 try:
     torch.serialization.add_safe_globals([transformers.tokenization_utils.Trie, BertConfig, BertTokenizer])
 except:
@@ -24,10 +27,10 @@ from igfold import IgFoldRunner
 from Bio.PDB import PDBParser
 from Bio.PDB.SASA import ShrakeRupley
 
+# --- CONFIG & EXCLUSIONS ---
 BASE_DIR = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies")
-OUTPUT_DIR = BASE_DIR / "PDB_Output_Files_GPU"
+OUTPUT_ROOT = BASE_DIR / "PDB_Output_Files_GPU"
 
-# Your full exclusion list
 EXCLUDE_FILES = {
     'readme_count.py', 'sabdabconverter.py', 'selenium_antibody_scraper.py',
     'thera_sabdab_scraper.py', 'validate_antibody_sequences.py', 'validation_report.csv',
@@ -43,53 +46,71 @@ EXCLUDE_FILES = {
     'immunogenicity_predictor.py', 'thermal_stability_predictor.py'
 }
 
-print("--- INITIALIZING 4080 SUPER ENGINE (OVERWRITE MODE) ---")
+print("--- INITIALIZING 4080 SUPER ENGINE (STRUCTURED MODE) ---")
 runner = IgFoldRunner()
 
 def extract_chains_raw_text(file_path):
+    """Parses .py files for FASTA sequences, ignoring code syntax."""
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
+    
     blocks = re.findall(r'>(.*?)(?=>|\"\"\"|\'\'\'|\Z)', content, re.DOTALL)
+    
     chains = {"H": None, "L": None}
     for block in blocks:
         lines = block.strip().split('\n')
         if not lines: continue
+        
         header = lines[0].lower()
         sequence = re.sub(r'[^A-Z]', '', "".join(lines[1:]).upper())
+        
         if not sequence: continue
+
         if any(h in header for h in ["heavy", "vh", "vhh"]):
             chains["H"] = sequence
         elif any(l in header for l in ["light", "vl"]):
             chains["L"] = sequence
+            
     return chains if (chains["H"] and chains["L"]) else None
 
 def run_pipeline():
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_ROOT, exist_ok=True)
     
+    # Identify all valid antibody python files
     antibody_files = [
         f for f in BASE_DIR.rglob("*.py") 
         if f.name not in EXCLUDE_FILES 
         and "shadow_benchmarks" not in f.parts 
+        and "PDB_Output_Files_GPU" not in f.parts
         and not f.name.startswith("._")
     ]
     
     print(f"\nSUCCESS: Found {len(antibody_files)} valid antibody files.")
 
     for f_path in tqdm(antibody_files, desc="Processing"):
+        # RECREATE SUBFOLDER LOGIC
+        # Gets the path relative to BASE_DIR (e.g. 'Bispecific_scFv')
+        relative_path = f_path.parent.relative_to(BASE_DIR)
+        target_dir = OUTPUT_ROOT / relative_path
+        target_dir.mkdir(parents=True, exist_ok=True)
+
         ab_name = f_path.stem 
         seq_dict = extract_chains_raw_text(f_path)
         
         if not seq_dict:
             continue
 
-        pdb_path = OUTPUT_DIR / f"{ab_name}.pdb"
-        sasa_path = pdb_path.with_suffix(".sasa.txt")
-
-        # --- LOGIC CHANGE: WE REMOVED THE SKIP CHECK TO FORCE REWRITE ---
+        pdb_path = target_dir / f"{ab_name}.pdb"
+        sasa_path = target_dir / f"{ab_name}.sasa.txt"
 
         try:
             # 1. FOLD
-            runner.fold(pdb_file=str(pdb_path), sequences=seq_dict, do_refine=False, do_renum=False)
+            runner.fold(
+                pdb_file=str(pdb_path),
+                sequences=seq_dict,
+                do_refine=False,
+                do_renum=False
+            )
 
             # 2. CALCULATE SASA
             parser = PDBParser(QUIET=True)
@@ -103,6 +124,7 @@ def run_pipeline():
         except Exception as e:
             print(f"\n[ERROR] Skipping {ab_name}: {e}")
 
+        # Clear VRAM for the 4080 SUPER
         torch.cuda.empty_cache()
 
 if __name__ == "__main__":
