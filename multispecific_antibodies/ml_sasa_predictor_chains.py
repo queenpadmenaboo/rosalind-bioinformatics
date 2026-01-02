@@ -45,18 +45,29 @@ def extract_chains_raw_text(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         blocks = re.findall(r'>(.*?)(?=>|\"\"\"|\'\'\'|\Z)', content, re.DOTALL)
-        chains = {"H": None, "L": None}
+        
+        # FIX: Changed to lists to store ALL chains from multispecific antibodies
+        h_chains = []
+        l_chains = []
+        
         for block in blocks:
             lines = block.strip().split('\n')
             if not lines: continue
             header = lines[0].lower()
             sequence = re.sub(r'[^A-Z]', '', "".join(lines[1:]).upper())
             if not sequence: continue
+            
+            # FIX: Append to list instead of overwriting
             if any(h in header for h in ["heavy", "vh", "vhh"]):
-                chains["H"] = sequence
+                h_chains.append(sequence)
             elif any(l in header for l in ["light", "vl"]):
-                chains["L"] = sequence
-        return chains if (chains["H"] or chains["L"]) else None
+                l_chains.append(sequence)
+        
+        # Return joined chains so Excel shows everything
+        return {
+            "H": " | ".join(h_chains) if h_chains else "N/A",
+            "L": " | ".join(l_chains) if l_chains else "N/A"
+        }
     except Exception:
         return None
 
@@ -114,7 +125,8 @@ def run_pipeline():
                     "Total_SASA": round(total_sasa, 2),
                     "Hydrophobic_SASA": round(hydro_sasa, 2),
                     "Hydro_Ratio": round(hydro_sasa / total_sasa, 3) if total_sasa > 0 else 0,
-                    "Sequence_H": seq_data["H"] if seq_data else "N/A"
+                    "Sequence_H": seq_data["H"] if seq_data else "N/A",
+                    "Sequence_L": seq_data["L"] if seq_data else "N/A" # Added L column for completeness
                 })
 
             except Exception as e:
