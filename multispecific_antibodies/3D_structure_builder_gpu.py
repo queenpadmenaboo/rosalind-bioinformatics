@@ -1,9 +1,10 @@
 import os
 # 1. GPU SECURITY BYPASS (Required for 4080 SUPER / Torch 2.6+)
 os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
+import torch
+torch.set_float32_matmul_precision('highest')
 
 import re
-import torch
 import warnings
 import logging
 from pathlib import Path
@@ -13,16 +14,7 @@ from tqdm import tqdm
 logging.getLogger().setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
-import transformers
-from transformers.models.bert.configuration_bert import BertConfig
-from transformers.models.bert.tokenization_bert import BertTokenizer
-
-# PATCH FOR PYTORCH 2.6+
-try:
-    torch.serialization.add_safe_globals([transformers.tokenization_utils.Trie, BertConfig, BertTokenizer])
-except:
-    pass
-
+# Load IgFold
 from igfold import IgFoldRunner
 
 # --- CONFIG & EXCLUSIONS ---
@@ -41,32 +33,56 @@ EXCLUDE_FILES = {
     'compare_hydrophobicity.py', 'developability_hotspots.xlsx', 'mAb_truth_engine.py',
     'mAb_Truth_Engine_Master.xlsx', 'MISSING_ANTIBODIES_LOG.xlsx', 'pnas_validator.py',
     'PNAS_VS_CALCULATIONS.xlsx', '3D_structure_builder_gpu.py', 'format_pairing_predictor.py',
-    'immunogenicity_predictor.py', 'thermal_stability_predictor.py'
+    'immunogenicity_predictor.py', 'thermal_stability_predictor.py', 'mAb_chains_logic.py',
+    'Antibody_Chain_Count_Summary.xlsx'
 }
 
-print("--- INITIALIZING 4080 SUPER ENGINE (STRUCTURED MODE) ---")
+print("--- INITIALIZING 4080 SUPER ENGINE (STABLE 3.10 MODE) ---")
 runner = IgFoldRunner()
 
-def extract_chains_raw_text(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    blocks = re.findall(r'>(.*?)(?=>|\"\"\"|\'\'\'|\Z)', content, re.DOTALL)
-    chains = {"H": None, "L": None}
-    for block in blocks:
-        lines = block.strip().split('\n')
-        if not lines: continue
-        header = lines[0].lower()
-        sequence = re.sub(r'[^A-Z]', '', "".join(lines[1:]).upper())
-        if not sequence: continue
-        if any(h in header for h in ["heavy", "vh", "vhh"]):
-            chains["H"] = sequence
-        elif any(l in header for l in ["light", "vl"]):
-            chains["L"] = sequence
-    return chains if (chains["H"] and chains["L"]) else None
+def extract_chains_dynamic(file_path):
+    """
+    1. Reads the file.
+    2. Identifies headers (>).
+    3. Filters out "NA" and empty sequences.
+    4. Dynamically assigns H1, L1, H2, L2 etc.
+    """
+    found_seq_dict = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        blocks = re.findall(r'>(.*?)(?=>|\"\"\"|\'\'\'|\Z)', content, re.DOTALL)
+        
+        h_idx, l_idx = 1, 1
+        for block in blocks:
+            lines = block.strip().split('\n')
+            if len(lines) < 2: continue
+            
+            header = lines[0].lower()
+            raw_seq = "".join(lines[1:]).strip().upper()
+            clean_seq = re.sub(r'[^A-Z]', '', raw_seq).upper()
+            
+            # The "NA" protector
+            if not clean_seq or clean_seq == "NA":
+                continue
+            
+            # Assign keys based on header keywords
+            if any(h in header for h in ["heavy", "vh", "vhh"]):
+                key = f"H{h_idx}"
+                h_idx += 1
+            else:
+                key = f"L{l_idx}"
+                l_idx += 1
+            
+            found_seq_dict[key] = clean_seq
+    except:
+        pass
+    return found_seq_dict if found_seq_dict else None    
 
 def run_pipeline():
     os.makedirs(OUTPUT_ROOT, exist_ok=True)
-    
+        
     antibody_files = [
         f for f in BASE_DIR.rglob("*.py") 
         if f.name not in EXCLUDE_FILES 
@@ -77,7 +93,7 @@ def run_pipeline():
     
     print(f"\nSUCCESS: Found {len(antibody_files)} valid antibody files.")
 
-    for f_path in tqdm(antibody_files, desc="Folding Check"):
+    for f_path in tqdm(antibody_files, desc="Folding"):
         relative_path = f_path.parent.relative_to(BASE_DIR)
         target_dir = OUTPUT_ROOT / relative_path
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -85,23 +101,35 @@ def run_pipeline():
         ab_name = f_path.stem 
         pdb_path = target_dir / f"{ab_name}.pdb"
 
-        # --- THE SKIP CHECK ---
-        if pdb_path.exists():
-            continue 
+        # --- THE SKIP CHECK (Safe to comment out if folder is deleted) ---
+        # if pdb_path.exists():
+        #      continue 
 
-        seq_dict = extract_chains_raw_text(f_path)
+        seq_dict = extract_chains_dynamic(f_path)
+        
         if not seq_dict:
             continue
 
         try:
+            # The runner folds all chains in the dict into one unified PDB
             runner.fold(
                 pdb_file=str(pdb_path),
                 sequences=seq_dict,
-                do_refine=False,
+                do_refine=False, 
                 do_renum=False
             )
+            
+            # CRITICAL CHECK: Ensure the file actually has data
+            if pdb_path.exists() and pdb_path.stat().st_size < 100:
+                print(f"\n[WARNING] {ab_name} produced an empty PDB. GPU Attention error?")
+                pdb_path.unlink() # Delete the bad empty file
+        
         except Exception as e:
-            print(f"\n[ERROR] Skipping {ab_name}: {e}")
+            
+            if "Invalid or missing coordinate" in str(e):
+                 print(f"\n[GPU ERROR] {ab_name} failed coordinate generation (Check VRAM/Weights).")
+            else:
+                 print(f"\n[ERROR] Skipping {ab_name}: {e}")
 
         torch.cuda.empty_cache()
 
