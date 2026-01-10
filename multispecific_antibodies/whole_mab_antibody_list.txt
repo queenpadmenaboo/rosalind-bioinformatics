@@ -26,7 +26,6 @@ basiliximab
 bavituximab
 bebtelovimab
 becotatug
-bedinvetmab
 belantamab
 belimumab
 belrestotug
@@ -61,7 +60,6 @@ cosibelimab
 crizanlizumab
 crovalimab
 daclizumab
-dafsolimab
 daratumumab
 datopotamab
 dazukibart
@@ -72,7 +70,6 @@ derlotuximab
 dinutuximab
 disitamab
 divozilimab
-docaravimab
 domvanalimab
 donanemab
 dostarlimab
@@ -82,7 +79,6 @@ durvalumab
 ebdarokimab
 ebronucimab
 eculizumab
-edrecolomab
 efalizumab
 elotuzumab
 emactuzumab
@@ -147,7 +143,6 @@ ligelizumab
 ligufalimab
 lirentelimab
 litifilimab
-lokivetmab
 loncastuximab
 lusvertikimab
 magrolimab
@@ -160,13 +155,11 @@ mepolizumab
 mevonlerbart
 mibavademab
 mirikizumab
-miromavimab
 mirvetuximab
 modotuximab
 mogamulizumab
 monalizumab
 motavizumab
-muromonab
 nadunolimab
 narlumosbart
 natalizumab
@@ -202,7 +195,6 @@ pamrevlumab
 panitumumab
 paridiprubart
 patritumab
-peluntamig
 pembrolizumab
 pemivibart
 penpulimab
@@ -235,7 +227,6 @@ rovelizumab
 rozanolixizumab
 sabatolimab
 sacituzumab
-safimestomig
 sarilumab
 sasanlimab
 satralizumab
@@ -254,11 +245,9 @@ socazolimab
 solanezumab
 sonesitatug
 spesolimab
-spevatamig
 stapokibart
 sugemalimab
 suptavumab
-sutacimig
 sutimlimab
 suvemcitug
 suvratoxumab
@@ -297,7 +286,6 @@ vamikibart
 vecantoxatug
 vedolizumab
 veligrotug
-velinotamig
 vibostolimab
 vilamakitug
 vilobelimab
