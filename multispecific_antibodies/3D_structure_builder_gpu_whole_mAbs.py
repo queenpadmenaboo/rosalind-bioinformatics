@@ -61,23 +61,55 @@ def extract_chains_dynamic(file_path):
             if len(lines) < 2:
                 continue
             
-            header = lines[0].upper()  # ADD THIS
+            header = lines[0].upper()
             # Combine all lines after the header line
             raw_data = "".join(lines[1:]).strip()
             # Remove any non-alpha characters (quotes, spaces, commas, etc.)
             clean_seq = re.sub(r'[^A-Z]', '', raw_data.upper())
             
-            # Only keep things that look like actual protein chains (>20 residues)
+            # Validate sequence quality: Must have content, not be "NA", and exceed 20 residues (minimum Fv fragment size)
             if clean_seq and clean_seq != "NA" and len(clean_seq) > 20:
-                chain_type = 'H' if 'HEAVY' in header else 'L'  # ADD THIS
-                found_sequences.append((chain_type, clean_seq))  # CHANGE THIS
-            
+                """
+                ROBUST CHAIN TYPE DETECTION
+                ---------------------------
+                Problem: Antibody files use inconsistent naming conventions:
+                - "Heavy_Chain" vs "HC" vs "VH" vs "H_1"
+                - "Light_Chain" vs "LC" vs "VL" vs "Kappa" vs "Lambda"
+                
+                Solution: Check multiple keyword patterns after uppercase conversion (Line 67)
+                
+                Heavy Chain Keywords: HEAVY, HC, VH, H_CHAIN, _H_, _HC_
+                Light Chain Keywords: LIGHT, LC, VL, L_CHAIN, KAPPA, LAMBDA, _L_, _LC_
+                
+                Default: If no match, assume Light chain (conservative fallback)
+                """
+    
+                # Check for heavy chain indicators (multiple patterns)
+                if any(keyword in header for keyword in ['HEAVY', 'HC', 'VH', 'H_CHAIN', '_H_', '_HC_']):
+                    chain_type = 'H'
+                
+                # Check for light chain indicators (multiple patterns including isotypes)
+                elif any(keyword in header for keyword in ['LIGHT', 'LC', 'VL', 'L_CHAIN', 'KAPPA', 'LAMBDA', '_L_', '_LC_']):
+                    chain_type = 'L'
+                
+                # Fallback: Default to light chain if header is ambiguous
+                else:
+                    chain_type = 'L'
+                
+                # Store tuple of (chain_type, sequence) for downstream H-L pairing
+                found_sequences.append((chain_type, clean_seq))
+                          
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
     
     heavies = [s for t, s in found_sequences if t == 'H']
     lights = [s for t, s in found_sequences if t == 'L']
     pairs = list(zip(heavies, lights))
+
+
+    # If Whole_mAb has only 1 pair, duplicate it for 2H:2L biological assembly
+    if len(pairs) == 1:
+        pairs = pairs * 2  # Creates [(VH, VL), (VH, VL)]
     return pairs if pairs else None
     
 
@@ -103,15 +135,14 @@ def run_pipeline():
         ab_name = f_path.stem 
         pdb_path = target_dir / f"{ab_name}.pdb"
 
-        # Wipe existing file to start fresh assembly
-        if pdb_path.exists():
-            pdb_path.unlink()
-
-        # Get list of whole mAb sequences
+        # Get list of Whole mAb sequences
         pairs = extract_chains_dynamic(f_path)
         if not pairs:
             continue
-
+                    
+        if pdb_path.exists():       
+            pdb_path.unlink()
+        
         # Loop through each sequence, fold individually, and assemble
         for i, (heavy, light) in enumerate(pairs):
             temp_pdb = f"temp_{ab_name}_pair_{i}.pdb"
@@ -130,12 +161,24 @@ def run_pipeline():
                         
                         for line in f_in:
                             if line.startswith("ATOM"):
-                                # Apply the 70A offset for spatial separation
+                                # Get original chain ID from IgFold ('H' or 'L')
+                                original_chain = line[21]
+        
+                                # Assign new chain ID for Whole_mAb (A,B,C,D pattern)
+                                if original_chain == 'H':
+                                    new_chain_id = chain_labels[i * 2]      # i=0 → A, i=1 → C
+                                else:  # original_chain == 'L'
+                                    new_chain_id = chain_labels[i * 2 + 1]  # i=0 → B, i=1 → D
+                            
+                                # Apply 70A offset for spatial separation
                                 x_orig = float(line[30:38])
                                 x_new = x_orig + (i * 70.0)
-                                # Format carefully: prefix + chainID + rest + shifted X + suffix
-                                f_out.write(line[:30] + f"{x_new:8.3f}" + line[38:])
+                            
+                                # Write: [cols 1-21] + new_chain_ID + [cols 23-30] + shifted_X + [cols 39-end]
+                                f_out.write(line[:21] + new_chain_id + line[22:30] + f"{x_new:8.3f}" + line[38:])
+
                         f_out.write("TER\n")
+                        
             except Exception as e:
                 print(f"\n[ERROR] {ab_name} (Chain {i}): {e}")
             finally:
