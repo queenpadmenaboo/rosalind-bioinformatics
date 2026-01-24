@@ -25,6 +25,12 @@ df['Isotype'] = df['CH1 Isotype_x'].astype(str)
 df = df.loc[:, ~df.columns.str.endswith('_y')]
 df.columns = df.columns.str.replace('_x', '')
 
+CHART_STUDIO_CONFIG = {
+    'showSendToCloud': True,
+    'plotlyServerURL': 'https://chart-studio.plotly.com',
+    'displaylogo': True
+}
+
 # --- FEATURE DISTRIBUTION SUMMARY ---
 print("\n" + "="*60)
 print("FEATURE STATISTICS FOR ML MODEL:")
@@ -48,7 +54,7 @@ fig1 = px.histogram(
 mean_val = df['Hydro_SASA'].mean()
 fig1.add_vline(x=mean_val, line_dash="dash", line_color="red", 
                annotation_text=f"Mean: {mean_val:.3f}")
-fig1.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Hydro_Histogram.html"))
+fig1.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Hydro_Histogram.html"), config=CHART_STUDIO_CONFIG)
 print("Histogram saved: Whole_mAbs_Hydro_Histogram.html")
 
 # --- 3. DEVELOPABILITY MAP: Scatter Plot ---
@@ -65,7 +71,7 @@ fig2 = px.scatter(
 )
 fig2.update_traces(marker=dict(size=12, opacity=0.8, line=dict(width=1, color='white')))
 fig2.update_layout(dragmode='zoom', hovermode='closest')
-fig2.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Developability_Map.html"))
+fig2.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Developability_Map.html"), config=CHART_STUDIO_CONFIG)
 print("Scatter plot saved: Whole_mAbs_Developability_Map.html")
 
 # --- 4. ISOTYPE COMPARISON: Box Plot ---
@@ -80,7 +86,7 @@ fig3 = px.box(
     template="plotly_dark"
 )
 fig3.update_traces(marker=dict(size=6, opacity=0.5))
-fig3.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Isotype_Boxplot.html"))
+fig3.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Isotype_Boxplot.html"), config=CHART_STUDIO_CONFIG)
 print("Box plot saved: Whole_mAbs_Isotype_Boxplot.html")
 
 # --- 5. FILTERING: EXTRACT STABLE CANDIDATES ---
