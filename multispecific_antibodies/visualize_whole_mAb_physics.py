@@ -6,7 +6,7 @@ import os
 
 # --- 1. SETUP & DATA LOADING ---
 DATA_DIR = "Whole_mAb"
-physics_path = os.path.join(DATA_DIR, "Whole_mAb_3D_Physics_Features.csv")
+physics_path = os.path.join(DATA_DIR, "Whole_mAb_3D_Physics_Features_Filtered.csv")
 master_path = os.path.join(DATA_DIR, "Whole_mAb_Data_Sync_Master.csv")
 
 if not os.path.exists(physics_path) or not os.path.exists(master_path):
@@ -20,7 +20,10 @@ df_m = pd.read_csv(master_path)
 df_p['Therapeutic'] = df_p['Therapeutic'].str.strip().str.lower()
 df_m['Therapeutic'] = df_m['Therapeutic'].str.strip().str.lower()
 df = pd.merge(df_p, df_m, on='Therapeutic')
-df['Isotype'] = df['CH1 Isotype'].astype(str)
+df['Isotype'] = df['CH1 Isotype_x'].astype(str)
+
+df = df.loc[:, ~df.columns.str.endswith('_y')]
+df.columns = df.columns.str.replace('_x', '')
 
 # --- FEATURE DISTRIBUTION SUMMARY ---
 print("\n" + "="*60)
@@ -45,7 +48,7 @@ fig1 = px.histogram(
 mean_val = df['Hydro_SASA'].mean()
 fig1.add_vline(x=mean_val, line_dash="dash", line_color="red", 
                annotation_text=f"Mean: {mean_val:.3f}")
-fig1.write_html("Whole_mAbs_Hydro_Histogram.html")
+fig1.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Hydro_Histogram.html"))
 print("Histogram saved: Whole_mAbs_Hydro_Histogram.html")
 
 # --- 3. DEVELOPABILITY MAP: Scatter Plot ---
@@ -62,7 +65,7 @@ fig2 = px.scatter(
 )
 fig2.update_traces(marker=dict(size=12, opacity=0.8, line=dict(width=1, color='white')))
 fig2.update_layout(dragmode='zoom', hovermode='closest')
-fig2.write_html("Whole_mAbs_Developability_Map.html")
+fig2.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Developability_Map.html"))
 print("Scatter plot saved: Whole_mAbs_Developability_Map.html")
 
 # --- 4. ISOTYPE COMPARISON: Box Plot ---
@@ -77,7 +80,7 @@ fig3 = px.box(
     template="plotly_dark"
 )
 fig3.update_traces(marker=dict(size=6, opacity=0.5))
-fig3.write_html("Whole_mAbs_Isotype_Boxplot.html")
+fig3.write_html(os.path.join(DATA_DIR,"Whole_mAbs_Isotype_Boxplot.html"))
 print("Box plot saved: Whole_mAbs_Isotype_Boxplot.html")
 
 # --- 5. FILTERING: EXTRACT STABLE CANDIDATES ---

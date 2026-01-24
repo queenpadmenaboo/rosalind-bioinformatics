@@ -11,8 +11,8 @@ warnings.filterwarnings("ignore")
 # --- PATHS ---
 BASE_DIR = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies\Whole_mAb")
 PDB_DIR = BASE_DIR / "PDB_Output_Files_GPU_Full"
-PHYSICS_CSV = BASE_DIR / "mAb_3D_Physics_Features.csv"
-OUTPUT_CSV = BASE_DIR / "Structure_Based_Aggregation_Risk.csv"
+PHYSICS_CSV = BASE_DIR / "Whole_mAb_3D_Physics_Features_Filtered.csv"
+OUTPUT_CSV = BASE_DIR / "Whole_mab_Structure_Based_Aggregation_Risk.csv"
 
 """
 THEORY: STRUCTURE-BASED AGGREGATION PREDICTION
