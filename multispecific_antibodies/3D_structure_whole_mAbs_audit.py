@@ -4,7 +4,7 @@ from Bio.PDB import PDBParser
 
 # Path to your IgFold/Theoretical PDBs
 PDB_DIR = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies\Whole_mAb\PDB_Output_Files_GPU_Full")
-OUTPUT_FILE = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies\Whole_mAb\Full_mAb_Structure_Audit.txt")
+OUTPUT_FILE = Path(r"C:\Users\bunsr\rosalind-bioinformatics\multispecific_antibodies\Whole_mAb\Whole_mAb_Structure_Audit.txt")
 
 def audit_pdb_contents():
     parser = PDBParser(QUIET=True)
