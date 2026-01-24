@@ -3,12 +3,20 @@ from Bio.PDB import PDBParser
 from pathlib import Path
 
 # Load and merge data
-df_p = pd.read_csv("Whole_mAb/Whole_mAb_3D_Physics_Features.csv")
+df_p = pd.read_csv("Whole_mAb/Whole_mAb_3D_Physics_Features_Filtered.csv")
 df_m = pd.read_csv("Whole_mAb/Whole_mAb_Data_Sync_Master.csv")
 
 df_p['Therapeutic'] = df_p['Therapeutic'].str.strip().str.lower()
 df_m['Therapeutic'] = df_m['Therapeutic'].str.strip().str.lower()
 df = pd.merge(df_p, df_m, on='Therapeutic')
+
+# Check for isotype conflicts
+conflicts = df[df['CH1 Isotype_x'] != df['CH1 Isotype_y']]
+if len(conflicts) > 0:
+    print(f"WARNING: {len(conflicts)} antibodies have mismatched isotypes!")
+    print(conflicts[['Therapeutic', 'CH1 Isotype_x', 'CH1 Isotype_y']])
+else:
+    print("No conflicts - isotypes match perfectly")
 
 print("="*70)
 print("VALIDATION 1: DO CHAIN CHARGES SUM TO TOTAL NET_CHARGE?")
@@ -86,6 +94,6 @@ print(f"\nNet_Charge statistics (all 300 antibodies):")
 print(df['Net_Charge'].describe())
 
 print("\nBy Isotype:")
-print(df.groupby('CH1 Isotype')['Net_Charge'].agg(['mean', 'std', 'min', 'max']))
+print(df.groupby('CH1 Isotype_x')['Net_Charge'].agg(['mean', 'std', 'min', 'max']))
 
 print("\n" + "="*70)
