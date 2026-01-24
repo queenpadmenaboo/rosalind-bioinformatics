@@ -1,5 +1,7 @@
 PDB_Output_Files/
 PDB_Output_Files_GPU/
-*.pdb
+# Allow PDB_Output_Files_GPU_Full
+!PDB_Output_Files_GPU_Full/
+!PDB_Output_Files_GPU_Full/*.pdb
 __pycache__/
 .venv/
