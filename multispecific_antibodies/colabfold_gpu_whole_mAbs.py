@@ -205,9 +205,11 @@ def run_colabfold(fasta_path, output_dir, antibody_name):
         str(fasta_path),
         str(output_dir),
         "--num-models", "1",  # Use best model only (not all 5)
-        "--num-recycle", "1",  # Faster, still accurate for antibodies
+        "--num-recycle", "3", 
         "--model-type", "alphafold2_multimer_v3",  # Use multimer for assembly
-        "--max-msa", "128:256",  # Reduce MSA depth (max_msa_clusters:max_extra_msa)
+        "--max-msa", "256:512",
+        "--amber",
+        "--use-gpu-relax",
         "--rank", "plddt",  # Rank by pLDDT confidence
     ]
     
@@ -223,11 +225,10 @@ def run_colabfold(fasta_path, output_dir, antibody_name):
 
 def rename_output_pdb(output_dir, antibody_name, final_output_path):
     """
-    ColabFold outputs: antibody_unrelaxed_rank_001_*.pdb (without AMBER)
+    ColabFold outputs: antibody_relaxed_rank_001_*.pdb (with AMBER relaxation)
     Rename to: antibody_name.pdb
     """
-    # Find the unrelaxed rank 1 PDB (we skipped AMBER relaxation for speed)
-    pdb_files = list(output_dir.glob("*_unrelaxed_rank_001_*.pdb"))
+    pdb_files = list(output_dir.glob("*_relaxed_rank_001_*.pdb"))
     
     if pdb_files:
         source_pdb = pdb_files[0]
