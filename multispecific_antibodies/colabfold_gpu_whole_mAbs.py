@@ -302,8 +302,8 @@ def run_pipeline():
             rename_output_pdb(antibody_output, f_path.stem, final_pdb)
         
         # Cleanup temp FASTA
-        if fasta_path.exists():
-            fasta_path.unlink()
+        # if fasta_path.exists():
+        #    fasta_path.unlink()
         
         tqdm.write("")  # Blank line between antibodies
 
