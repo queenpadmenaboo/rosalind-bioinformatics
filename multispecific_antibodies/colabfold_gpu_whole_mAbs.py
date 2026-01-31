@@ -207,7 +207,7 @@ def run_colabfold(fasta_path, output_dir, antibody_name):
         "--num-models", "1",  # Use best model only (not all 5)
         "--num-recycle", "3", 
         "--model-type", "alphafold2_multimer_v3",  # Use multimer for assembly
-        "--max-msa", "32:64",
+        "--max-msa", "16:32",
         "--amber",
         "--rank", "plddt",  # Rank by pLDDT confidence
     ]
