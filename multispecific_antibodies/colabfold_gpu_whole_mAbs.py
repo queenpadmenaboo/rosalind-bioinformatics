@@ -209,7 +209,6 @@ def run_colabfold(fasta_path, output_dir, antibody_name):
         "--num-recycle", "1",
         "--model-type", "alphafold2_multimer_v3",
         "--amber",
-        "--use-templates", "false",
         "--rank", "multimer",
     ]
 
