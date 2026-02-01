@@ -1,1 +1,4 @@
-2026-01-31 18:02:50,956 Running colabfold 1.5.5 (83ee93d262a99ad62d6f0897c5ddd37eb918d385)
+2026-01-31 18:29:52,803 Running colabfold 1.5.5 (83ee93d262a99ad62d6f0897c5ddd37eb918d385)
+2026-01-31 18:29:53,972 Running on GPU
+2026-01-31 18:29:54,011 Found 2 citations for tools or databases
+2026-01-31 18:29:54,012 Query 1/1: Whole_mAb_Assembly (length 1336)

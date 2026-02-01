@@ -46,7 +46,7 @@ AA_ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
 # Set TEST_MODE = True to run only first few antibodies for validation
 # Set TEST_MODE = False to run full batch (all antibodies)
 TEST_MODE = True
-MAX_TEST_ANTIBODIES = 2  # Only used when TEST_MODE = True
+MAX_TEST_ANTIBODIES = 1  # Only used when TEST_MODE = True
 # ============================================================================
 
 # Human Constant Region Sequences (Standard Reference Library)
@@ -197,29 +197,56 @@ def create_multimer_fasta(pairs, h_iso, l_iso, output_fasta):
 
 def run_colabfold(fasta_path, output_dir, antibody_name):
     """
-    Runs ColabFold batch prediction using colabfold_batch command.
-    Optimized for 4080 Super: Fast batch processing (3-7 min per antibody).
+    Runs ColabFold batch prediction using pixi-managed colabfold_batch.
+    Optimized for 4080 Super: Fast batch processing.
     """
     cmd = [
-        "colabfold_batch",
+        "pixi", "run", "colabfold_batch",
         str(fasta_path),
         str(output_dir),
         "--msa-mode", "single_sequence",
-        "--num-models", "1",  # Use best model only (not all 5)
-        "--num-recycle", "3", 
-        "--model-type", "alphafold2_multimer_v3",  # Use multimer for assembly
+        "--num-models", "1",
+        "--num-recycle", "3",
+        "--model-type", "alphafold2_multimer_v3",
         "--amber",
         "--rank", "multimer",
     ]
-    
+
+    log_path = output_dir / f"{antibody_name}_colabfold.log"
+
     try:
         print(f"Running ColabFold for {antibody_name}...")
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        with open(log_path, 'w') as log_file:
+            result = subprocess.run(
+                cmd,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                text=True,
+                timeout=1800,
+                cwd="/mnt/c/Users/bunsr/rosalind-bioinformatics/multispecific_antibodies/localcolabfold"
+            )
+
+        with open(log_path, 'r') as log_file:
+            log_contents = log_file.read()
+
+        print(f"--- LOG for {antibody_name} ---")
+        print(log_contents)
+        print(f"--- END LOG ---")
+        print(f"Return code: {result.returncode}")
+
+        if result.returncode != 0:
+            print(f"[FAILED] ColabFold failed for {antibody_name} (exit code {result.returncode})")
+            return False
+
         print(f"[SUCCESS] ColabFold completed for {antibody_name}")
         return True
-    except subprocess.CalledProcessError as e:
-        print(f"[FAILED] ColabFold failed for {antibody_name}")
-        print(f"Error: {e.stderr}")
+
+    except subprocess.TimeoutExpired:
+        print(f"[TIMEOUT] ColabFold hit 30-min timeout for {antibody_name}")
+        print(f"Check log: {log_path}")
+        return False
+    except Exception as e:
+        print(f"[EXCEPTION] {antibody_name}: {e}")
         return False
 
 def rename_output_pdb(output_dir, antibody_name, final_output_path):
@@ -228,6 +255,8 @@ def rename_output_pdb(output_dir, antibody_name, final_output_path):
     Rename to: antibody_name.pdb
     """
     pdb_files = list(output_dir.glob("*_relaxed_rank_001_*.pdb"))
+    if not pdb_files:
+        pdb_files = list(output_dir.glob("*_unrelaxed_rank_001_*.pdb"))
     
     if pdb_files:
         source_pdb = pdb_files[0]
