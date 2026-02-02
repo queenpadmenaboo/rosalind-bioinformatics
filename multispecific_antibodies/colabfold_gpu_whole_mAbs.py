@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore")
 
 # --- CONFIG & EXCLUSIONS ---
 BASE_DIR = Path("/mnt/c/Users/bunsr/rosalind-bioinformatics/multispecific_antibodies/Whole_mAb")
-OUTPUT_ROOT = BASE_DIR / "PDB_Output_ColabFold_Structures"
+OUTPUT_ROOT = BASE_DIR / "PDB_Output_ColabFold_Fab_Structures"
 CSV_PATH = Path("/mnt/c/Users/bunsr/TheraSAbDab_SeqStruc_07Dec2025.csv")
 TEMP_FASTA_DIR = BASE_DIR / "temp_fastas"
 
@@ -49,26 +49,31 @@ TEST_MODE = True
 MAX_TEST_ANTIBODIES = 1  # Only used when TEST_MODE = True
 # ============================================================================
 
+# ============================================================================
+# CONSTANTS — CH1‑ONLY + CL‑ONLY (Fab‑level modeling)
+# ============================================================================
+
 # Human Constant Region Sequences (Standard Reference Library)
 CONSTANTS = {
-    'HEAVY': {
-        # Full CH1-Hinge-CH2-CH3
-        'G1': ("ASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKV"
-               "EPKSCDKTHTCPPCP"
-               "APELLGGPSVFLFPPKPKDTLMISRTPEVTCVVVDVSHEDPEVKFNWYVDGVEVHNAKTKPREEQYNSTYRVVSVLTVLHQDWLNGKEYKCKVSNKALPAPIEKTISKAK"
-               "GQPREPQVYTLPPSRDELTKNQVSLTCLVKGFYPSDIAVEWESNGQPENNYKTTPPVLDSDGSFFLYSKLTVDKSRWQQGNVFSCSVMHEALHNHYTQKSLSLSPGK"),
-        'G2': ("ASTKGPSVFPLAPCSRSTSESTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSNFGTQTYTCNVDHKPSNTKVDKTV"
-               "ERKCCVECPPCP"
-               "APPVAGPSVFLFPPKPKDTLMISRTPEVTCVVVDVSHEDPEVQFNWYVDGVEVHNAKTKPREEQFNSTFRVVSVLTVVHQDWLNGKEYKCKVSNKGLPAPIEKTISKTK"
-               "GQPREPQVYTLPPSREEMTKNQVSLTCLVKGFYPSDISVEWESNGQPENNYKTTPPMLDSDGSFFLYSKLTVDKSRWQQGNVFSCSVMHEALHNHYTQKSLSLSPGK"),
-        'G4': ("ASTKGPSVFPLAPCSRSTSESTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSSLGTKTYTCNVDHKPSNTKVDKRV"
-               "ESKYGPPCPSCP"
-               "APEFLGGPSVFLFPPKPKDTLMISRTPEVTCVVVDVSQEDPEVQFNWYVDGVEVHNAKTKPREEQFNSTYRVVSVLTVLHQDWLNGKEYKCKVSNKGLPSSIEKTISKAK"
-               "GQPREPQVYTLPPSQEEMTKNQVSLTCLVKGFYPSDIAVEWESNGQPENNYKTTPPVLDSDGSFFLYSRLTVDKSRWQEGNVFSCSVMHEALHNHYTQKSLSLSLGK")
+    'HEAVY_CH1': {
+        'G1': (
+            "ASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKV"
+        ), 
+        'G2': (
+            "ASTKGPSVFPLAPCSRSTSESTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSNFGTQTYTCNVDHKPSNTKVDKTV"
+        ),
+        'G4': (
+            "ASTKGPSVFPLAPCSRSTSESTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSSLGTKTYTCNVDHKPSNTKVDKRV"
+        ),
     },
-    'LIGHT': {
-        'Kappa': "RTVAAPSVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFNRGEC",
-        'Lambda': "GQPKAAPSVTLFPPSSEELQANKATLVCLISDFYPGAVTVAWKADSSPVKAGVETTTPSKQSNNKYAASSYLSLTPEQWKSHRSYSCQVTHEGSTVEKTVAPTECS"
+
+    'LIGHT_CL': {
+        'Kappa': (
+            "RTVAAPSVFIFPPSDEQLKSGTASVVCLLNNFYPREAKVQWKVDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSKADYEKHKVYACEVTHQGLSSPVTKSFNRGEC"
+        ),
+        'Lambda': (
+            "GQPKAAPSVTLFPPSSEELQANKATLVCLISDFYPGAVTVAWKADSSPVKAGVETTTPSKQSNNKYAASSYLSLTPEQWKSHRSYSCQVTHEGSTVEKTVAPTECS"
+        ),
     }
 }
 
@@ -99,13 +104,11 @@ def detect_isotype(file_path, lookup_dict):
         return h_iso, l_iso
     except: 
         return 'G1', 'Kappa'
-
+    
+# EXTRACT SEQUENCES and return ONLY ONE Fab pair (no duplication)
 def extract_chains_dynamic(file_path):
-    """
-    Extracts H and L sequences from Python files containing FASTA format.
-    Handles format: variable_name = '''\\n>Header\\nSequence\\n'''
-    """
     found_sequences = []
+
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -134,11 +137,10 @@ def extract_chains_dynamic(file_path):
             clean_seq = re.sub(r'[^A-Z]', '', raw_data.upper())
             
             # Validate sequence quality
-            if clean_seq and clean_seq != "NA" and len(clean_seq) > 20:
+            if clean_seq and len(clean_seq) > 20:
                 # Validate it's actually amino acids (not random Python code)
-                invalid_chars = set(clean_seq) - set(AA_ALPHABET)
-                if invalid_chars:
-                    print(f"Warning: Invalid amino acids {invalid_chars} in {file_path.stem}, skipping this sequence")
+                invalid = set(clean_seq) - set(AA_ALPHABET)
+                if invalid:
                     continue
                 
                 # Check for heavy chain indicators
@@ -157,45 +159,31 @@ def extract_chains_dynamic(file_path):
         print(f"Error reading {file_path}: {e}")
         return None
     
-    # Separate and pair chains
     heavies = [s for t, s in found_sequences if t == 'H']
     lights = [s for t, s in found_sequences if t == 'L']
     
-    # Validate we found chains
+    # Validate found chains
     if not heavies or not lights:
-        print(f"Warning: {file_path.stem} missing chains (H={len(heavies)}, L={len(lights)})")
+        print(f"Warning: {file_path.stem} missing chains")
         return None
     
-    pairs = list(zip(heavies, lights))
-    
-    # If Whole_mAb has only 1 pair, duplicate it for 2H:2L biological assembly
-    if len(pairs) == 1:
-        pairs = pairs * 2  # Creates [(VH, VL), (VH, VL)]
-    
-    return pairs if pairs else None
+    heavy_fv = heavies[0]
+    light_fv = lights[0]
 
-def create_multimer_fasta(pairs, h_iso, l_iso, output_fasta):
-    """
-    Creates a single-entry FASTA file for ColabFold multimer prediction.
-    Sequences are separated by a colon (:) for complex assembly.
-    """
-    all_chains = []
-    for i, (heavy_fv, light_fv) in enumerate(pairs):
-        # Construct full-length chains
-        full_heavy = heavy_fv + CONSTANTS['HEAVY'][h_iso]
-        full_light = light_fv + CONSTANTS['LIGHT'][l_iso]
+    return heavy_fv, light_fv
+
+# CREATE EXACTLY 2 CHAINS (Fab)
+def create_fab_fasta(heavy_fv: str, light_fv: str, h_iso: str, l_iso: str, output_fasta: Path):
+    
+    heavy_fab = heavy_fv + CONSTANTS['HEAVY_CH1'][h_iso]
+    light_fab = light_fv + CONSTANTS['LIGHT_CL'][l_iso]
         
-        all_chains.append(full_heavy)
-        all_chains.append(full_light)
-    
-    # CRITICAL: Join sequences with ':' so ColabFold treats them as one multimer
-    complex_sequence = ":".join(all_chains)
-    
     with open(output_fasta, 'w') as f:
-        # Use one header for the entire complex
-        f.write(f">Whole_mAb_Assembly\n{complex_sequence}\n")
+        f.write(">Fab\n")
+        f.write(f"{heavy_fab}:{light_fab}\n")
 
-def run_colabfold(fasta_path, output_dir, antibody_name):
+# Run ColabFold — correct Fab‑level AF2‑Multimer settings
+def run_colabfold(fasta_path: Path, output_dir: Path, antibody_name: str):
     """
     Runs ColabFold batch prediction using pixi-managed colabfold_batch.
     Optimized for 4080 Super: Fast batch processing.
@@ -204,10 +192,10 @@ def run_colabfold(fasta_path, output_dir, antibody_name):
         "pixi", "run", "colabfold_batch",
         str(fasta_path),
         str(output_dir),
-        "--msa-mode", "single_sequence",
+        "--msa-mode", "mmseqs2",
         "--num-models", "1",
-        "--num-recycle", "1",
-        "--model-type", "alphafold2_multimer_v3",
+        "--num-recycle", "3",
+        "--model-type", "alphafold2_multimer_v2",
         "--amber",
         "--rank", "multimer",
     ]
@@ -215,7 +203,6 @@ def run_colabfold(fasta_path, output_dir, antibody_name):
     log_path = output_dir / f"{antibody_name}_colabfold.log"
 
     try:
-        print(f"Running ColabFold for {antibody_name}...")
         with open(log_path, 'w') as log_file:
             result = subprocess.run(
                 cmd,
@@ -226,34 +213,20 @@ def run_colabfold(fasta_path, output_dir, antibody_name):
                 cwd="/mnt/c/Users/bunsr/rosalind-bioinformatics/multispecific_antibodies/localcolabfold"
             )
 
-        with open(log_path, 'r') as log_file:
-            log_contents = log_file.read()
-
-        print(f"--- LOG for {antibody_name} ---")
-        print(log_contents)
-        print(f"--- END LOG ---")
-        print(f"Return code: {result.returncode}")
-
         if result.returncode != 0:
-            print(f"[FAILED] ColabFold failed for {antibody_name} (exit code {result.returncode})")
+            print(f"[FAILED] {antibody_name}")
             return False
 
-        print(f"[SUCCESS] ColabFold completed for {antibody_name}")
+        print(f"[SUCCESS] {antibody_name}")
         return True
 
-    except subprocess.TimeoutExpired:
-        print(f"[TIMEOUT] ColabFold hit 30-min timeout for {antibody_name}")
-        print(f"Check log: {log_path}")
-        return False
     except Exception as e:
         print(f"[EXCEPTION] {antibody_name}: {e}")
         return False
 
-def rename_output_pdb(output_dir, antibody_name, final_output_path):
-    """
-    ColabFold outputs: antibody_relaxed_rank_001_*.pdb (with AMBER relaxation)
-    Rename to: antibody_name.pdb
-    """
+# Rename Output .pdb — save as *_Fab.pdb
+def rename_output_pdb(output_dir: Path, antibody_name: str, final_output_path: Path):
+
     pdb_files = list(output_dir.glob("*_relaxed_rank_001_*.pdb"))
     if not pdb_files:
         pdb_files = list(output_dir.glob("*_unrelaxed_rank_001_*.pdb"))
@@ -262,13 +235,8 @@ def rename_output_pdb(output_dir, antibody_name, final_output_path):
         source_pdb = pdb_files[0]
         source_pdb.rename(final_output_path)
         print(f"[SAVED] {final_output_path}")
-        
-        # Clean up intermediate files
-        for pattern in ["*.a3m", "*.json", "*_rank_00[2-5]_*.pdb"]:
-            for f in output_dir.glob(pattern):
-                f.unlink()
     else:
-        print(f"[ERROR] No output PDB found for {antibody_name}")
+        print(f"[ERROR] No PDB for {antibody_name}")
 
 def run_pipeline():
     os.makedirs(OUTPUT_ROOT, exist_ok=True)
@@ -304,19 +272,21 @@ def run_pipeline():
         tqdm.write(f"{'='*60}")
         
         # Get sequences
-        pairs = extract_chains_dynamic(f_path)
-        if not pairs:
+        result = extract_chains_dynamic(f_path)
+        if not result:
             tqdm.write(f"[ERROR] No valid sequences found in {f_path.stem}")
             continue
+
+        heavy_fv, light_fv = result
         
         # Detect isotype
         h_iso, l_iso = detect_isotype(f_path, isotype_lookup)
         tqdm.write(f"Isotype: Heavy={h_iso}, Light={l_iso}")
-        tqdm.write(f"Chains: {len(pairs)} H-L pairs")
+        tqdm.write(f"Chains: 1 Fab pair")
         
-        # Create multimer FASTA
+        # Create Fab FASTA
         fasta_path = TEMP_FASTA_DIR / f"{f_path.stem}.fasta"
-        create_multimer_fasta(pairs, h_iso, l_iso, fasta_path)
+        create_fab_fasta(heavy_fv, light_fv, h_iso, l_iso, fasta_path)
         
         # Create antibody-specific output directory
         antibody_output = OUTPUT_ROOT / f_path.stem
@@ -327,7 +297,7 @@ def run_pipeline():
         
         if success:
             # Move and rename final PDB
-            final_pdb = OUTPUT_ROOT / f"{f_path.stem}.pdb"
+            final_pdb = OUTPUT_ROOT / f"{f_path.stem}_Fab.pdb"
             rename_output_pdb(antibody_output, f_path.stem, final_pdb)
         
         # Cleanup temp FASTA
@@ -337,7 +307,7 @@ def run_pipeline():
         tqdm.write("")  # Blank line between antibodies
 
     print("\n" + "="*60)
-    print("=== 3D STRUCTURE WHOLE MAB ASSEMBLY COMPLETE ===")
+    print("=== FAB-LEVEL STRUCTURE GENERATION COMPLETE ===")
     print("="*60)
 
 if __name__ == "__main__":
