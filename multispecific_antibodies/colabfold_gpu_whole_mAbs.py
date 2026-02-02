@@ -192,7 +192,7 @@ def run_colabfold(fasta_path: Path, output_dir: Path, antibody_name: str):
         "pixi", "run", "colabfold_batch",
         str(fasta_path),
         str(output_dir),
-        "--msa-mode", "mmseqs2",
+        "--msa-mode", "single_sequence",
         "--num-models", "1",
         "--num-recycle", "3",
         "--model-type", "alphafold2_multimer_v2",
