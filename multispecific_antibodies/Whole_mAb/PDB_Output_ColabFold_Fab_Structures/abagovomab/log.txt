@@ -1,0 +1,4 @@
+2026-02-02 00:52:21,891 Running colabfold 1.5.5 (83ee93d262a99ad62d6f0897c5ddd37eb918d385)
+2026-02-02 00:52:22,556 Running on GPU
+2026-02-02 00:52:23,853 Found 3 citations for tools or databases
+2026-02-02 00:52:23,854 Query 1/1: Fab (length 431)

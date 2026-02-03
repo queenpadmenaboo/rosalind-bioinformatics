@@ -1,0 +1,17 @@
+[workspace]
+channels = ["conda-forge"]
+name = "multispecific_antibodies"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.10.*"
+
+[pypi-dependencies]
+jax = "==0.4.29"
+jaxlib = { url = "https://storage.googleapis.com/jax-releases/cuda12/jaxlib-0.4.29+cuda12.cudnn91-cp310-cp310-manylinux2014_x86_64.whl" }
+
+
+
