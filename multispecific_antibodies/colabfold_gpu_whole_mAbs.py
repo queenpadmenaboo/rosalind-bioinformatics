@@ -13,9 +13,9 @@ logging.getLogger().setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
 # --- CONFIG & EXCLUSIONS ---
-BASE_DIR = Path("/mnt/c/Users/bunsr/rosalind-bioinformatics/multispecific_antibodies/Whole_mAb")
+BASE_DIR = Path("/home/bunsree/rosalind-bioinformatics/multispecific_antibodies/Whole_mAb")
+CSV_PATH = Path("/home/bunsree/TheraSAbDab_SeqStruc_07Dec2025.csv")
 OUTPUT_ROOT = BASE_DIR / "PDB_Output_ColabFold_Fab_Structures"
-CSV_PATH = Path("/mnt/c/Users/bunsr/TheraSAbDab_SeqStruc_07Dec2025.csv")
 TEMP_FASTA_DIR = BASE_DIR / "temp_fastas"
 
 EXCLUDE_FILES = {
@@ -34,7 +34,7 @@ EXCLUDE_FILES = {
     'Antibody_Chain_Count_Summary.xlsx', '3D_structure_builder_gpu_whole_mAbs.py',
     '3D_structure_builder_gpu_whole_mAbs_full.py', 'non_human_antibodies_to_remove.txt',
     'whole_mAbs_folder_check.py', 'whole_mAbs_isotypes_check.py', 'whole_mAb_antibody_list.txt',
-    '3D_structure_builder_colabfold_whole_mAbs.py', 'colabfold_gpu_whole_mAbs.py'
+    '3D_structure_builder_colabfold_whole_mAbs.py'
 }
 
 # IUPAC Standard 20 Amino Acids
@@ -210,7 +210,7 @@ def run_colabfold(fasta_path: Path, output_dir: Path, antibody_name: str):
                 stderr=subprocess.STDOUT,
                 text=True,
                 timeout=1800,
-                cwd="/mnt/c/Users/bunsr/rosalind-bioinformatics/multispecific_antibodies/localcolabfold"
+                cwd="/home/bunsree/rosalind-bioinformatics/multispecific_antibodies/localcolabfold"
             )
 
         if result.returncode != 0:
@@ -239,8 +239,8 @@ def rename_output_pdb(output_dir: Path, antibody_name: str, final_output_path: P
         print(f"[ERROR] No PDB for {antibody_name}")
 
 def run_pipeline():
-    os.makedirs(OUTPUT_ROOT, exist_ok=True)
-    os.makedirs(TEMP_FASTA_DIR, exist_ok=True)
+    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    TEMP_FASTA_DIR.mkdir(parents=True, exist_ok=True)
 
     # Load Master Isotype Data from CSV
     isotype_lookup = {}
@@ -290,7 +290,7 @@ def run_pipeline():
         
         # Create antibody-specific output directory
         antibody_output = OUTPUT_ROOT / f_path.stem
-        os.makedirs(antibody_output, exist_ok=True)
+        antibody_output.mkdir(parents=True, exist_ok=True)
         
         # Run ColabFold
         success = run_colabfold(fasta_path, antibody_output, f_path.stem)
