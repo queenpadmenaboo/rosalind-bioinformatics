@@ -28,8 +28,11 @@ def update_readme_count():
     antibody_folders = [
         "Bispecific_mAb",
         "Bispecific_scFv",
+        "Chocolate_Bi_antibody",
         "Main",
+        "Strawberry_Bi_Fv",
         "Other_Formats",
+        "Vanilla_IgG",
         "Whole_mAb"
     ]
 

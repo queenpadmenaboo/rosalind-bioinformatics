@@ -37,5 +37,5 @@ with open('odronextamab.py', 'r') as f:
 These sequences are from publicly available therapeutic antibodies as curated by Thera-SAbDab. For commercial use, please verify current patent status and regulatory information.
 
 ## Statistics
-- Data last updated: December 2025
-- Total antibodies: 471
+- Data last updated: February 2026
+- Total antibodies: 464
