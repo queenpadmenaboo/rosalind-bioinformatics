@@ -22,7 +22,7 @@ BASE_DIR = Path("/content/antibody_data")
 OUTPUT_ROOT = Path("/content/PDB_Output_ColabFold_Fab_Structures")
 CSV_PATH = Path("/content/TheraSAbDab_SeqStruc_07Dec2025.csv")
 TEMP_FASTA_DIR = Path("/content/temp_fastas")
-COLABFOLD_BIN = "/content/py310/bin/colabfold_batch"
+COLABFOLD_BIN = "/usr/local/bin/colabfold_batch"
 
 # IUPAC Standard 20 Amino Acids
 AA_ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
