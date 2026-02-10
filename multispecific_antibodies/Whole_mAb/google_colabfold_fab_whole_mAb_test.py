@@ -289,7 +289,7 @@ def run_pipeline():
             final_pdb = OUTPUT_ROOT / f"{f_path.stem}_Fab.pdb"
             rename_output_pdb(antibody_output, f_path.stem, final_pdb)
         
-        tqdm.write("")  # Blank line between antibodies
+        tqdm.write("")
 
     print("\n" + "="*60)
     print("=== FAB STRUCTURE GENERATION COMPLETE ===")
