@@ -1,5 +1,5 @@
 # ============================================================================
-# COLABFOLD FAB BUILDER - TEST MODE (1 ANTIBODY)
+# COLABFOLD FAB BUILDER - BATCH MODE
 # ============================================================================
 
 import os
@@ -26,15 +26,6 @@ COLABFOLD_BIN = "/usr/local/bin/colabfold_batch"
 
 # IUPAC Standard 20 Amino Acids
 AA_ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
-
-# ============================================================================
-# TEST MODE CONFIGURATION
-# ============================================================================
-# Set TEST_MODE = True to run only first few antibodies for validation
-
-TEST_MODE = True
-MAX_TEST_ANTIBODIES = 1  # Only used when TEST_MODE = True
-# ============================================================================
 
 # ============================================================================
 # CONSTANTS — CH1 ONLY + CL ONLY (Fab level modeling)
@@ -243,10 +234,6 @@ def run_pipeline():
         if not f.name.startswith("._")
     ]
     
-    if TEST_MODE:
-        antibody_files = antibody_files[:MAX_TEST_ANTIBODIES]
-        print(f"\n[TEST MODE]: Processing only {len(antibody_files)} antibody\n")
-    
     if not antibody_files:
         print("[ERROR] No antibody files found")
         return
@@ -312,7 +299,7 @@ def run_pipeline():
 print("="*60)
 print("STEP 1: UPLOAD YOUR FILES")
 print("="*60)
-print("\n1. Upload ONE antibody .py file")
+print("\n1. Upload antibody.py files")
 print("2. Upload your CSV file (TheraSAbDab_SeqStruc_07Dec2025.csv)")
 print("\nClick 'Choose Files' below:\n")
 
@@ -347,3 +334,4 @@ time.sleep(3)
 
 if __name__ == "__main__":
     run_pipeline()
+    
