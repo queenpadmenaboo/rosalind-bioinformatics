@@ -229,10 +229,10 @@ def run_pipeline():
         print("--- NO CSV FOUND. Using keyword search for isotypes. ---")
 
     # Get antibody files   
-    antibody_files = [
+    antibody_files = sorted([
         f for f in BASE_DIR.rglob("*.py") 
         if not f.name.startswith("._")
-    ]
+    ])
     
     if not antibody_files:
         print("[ERROR] No antibody files found")
