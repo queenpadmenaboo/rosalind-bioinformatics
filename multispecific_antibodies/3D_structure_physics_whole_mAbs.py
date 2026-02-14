@@ -59,9 +59,17 @@ def run_3D_physics_analysis():
     if not PDB_DIR.exists():
         print(f"ERROR: PDB directory not found at {PDB_DIR}")
         return
+    
+    # Read MASTER_CSV
+    df_master = pd.read_csv(MASTER_CSV)
+    df_master['key'] = df_master['Therapeutic'].str.lower().str.strip()
 
     # Map available PDBs (lowercase for easy matching)
-    pdb_map = {f.stem.lower(): f for f in PDB_DIR.glob("*.pdb")}
+    pdb_map = {}
+    for f in PDB_DIR.glob("*.pdb"):
+      key = f.stem.replace("_fab", "").lower() # remove _fab in .pdb filename
+      pdb_map[key] = f
+
     print(f"Found {len(pdb_map)} PDB files ready for analysis.")
 
     # Setup tools
@@ -91,7 +99,7 @@ def run_3D_physics_analysis():
                     c_residues = len(residues)
                     chain_residues[c_id] = c_residues 
 
-                    for res, res in enumerate(residues):
+                    for res in residues:
                         res_name = res.get_resname()
                         res_sasa = getattr(res, 'sasa', 0)
                         c_sasa += res_sasa
@@ -121,6 +129,9 @@ def run_3D_physics_analysis():
             chB_length = chain_residues.get('B', 0)
             total_length = total_residues
 
+            # Match antibody names
+            ab_name_clean = ab_name.replace('_fab', '').capitalize()
+
             # Compile the data for this mAb
             entry = {
                 "Therapeutic": ab_name.capitalize(),
@@ -137,22 +148,28 @@ def run_3D_physics_analysis():
         except Exception as e:
             print(f"Error processing {ab_name}: {e}")
 
-    # Save results
     if master_features:
         df = pd.DataFrame(master_features)
 
-        # Merge with master data for isotypes
-        if MASTER_CSV.exists():
-            df_master = pd.read_csv(MASTER_CSV)
-            df['Therapeutic'] = df['Therapeutic'].str.strip().str.lower()
-            df_master['Therapeutic'] = df_master['Therapeutic'].str.strip().str.lower()
-            df = pd.merge(df, df_master[['Therapeutic', 'CH1 Isotype', 'VD LC']], on='Therapeutic', how='left')
-            cols = ['Therapeutic', 'CH1 Isotype', 'VD LC'] + [c for c in df.columns if c not in ['Therapeutic', 'CH1 Isotype', 'VD LC']]
-            df = df[cols]
-        
+        # create matching keys (strip _fab, lowercase, remove spaces)
+        df['key'] = df['Therapeutic'].str.lower().str.replace("_fab", "").str.replace(" ", "").str.strip()
+        df_master['key'] = df_master['Therapeutic'].str.lower().str.replace(" ", "").str.strip()
+
+        # merge on the cleaned 'key' column
+        df = pd.merge(df, df_master[['key', 'CH1 Isotype', 'VD LC']], on='key', how='left')
+
+        # drop the temporary key column
+        df.drop(columns=['key'], inplace=True)
+
+        # reorder columns
+        cols = ['Therapeutic', 'CH1 Isotype', 'VD LC'] + [c for c in df.columns if c not in ['Therapeutic', 'CH1 Isotype', 'VD LC']]
+        df = df[cols]
+
+        # save final CSV
         df.to_csv(OUTPUT_CSV, index=False)
         print(f"\n=== SUCCESS: Physics extracted for {len(df)} mAbs ===")
         print(f"File saved to: {OUTPUT_CSV}")
+
 
 if __name__ == "__main__":
     run_3D_physics_analysis()
